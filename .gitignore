@@ -22,3 +22,75 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# ===========================================
+# MAVEN
+# ===========================================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ===========================================
+# SPRING BOOT
+# ===========================================
+.springBeans
+.sts4-cache
+
+# ===========================================
+# IntelliJ IDEA
+# ===========================================
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# ===========================================
+# NetBeans
+# ===========================================
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ===========================================
+# VS Code
+# ===========================================
+.vscode/
+
+# ===========================================
+# MAC
+# ===========================================
+.DS_Store
+
+# ===========================================
+# DOCKER & SCRIPTS SQL - NO COMMIT
+# ===========================================
+# Archivos Docker
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+
+# Directorio Docker completo
+docker/
+
+# Scripts SQL originales
+physicalScheme.sql
+*.sql
+
+# Variables de entorno locales
+.env
+.env.local
+.env.development
+.env.production
+
+# Logs de Docker
+docker-compose.log
+*.docker.log
