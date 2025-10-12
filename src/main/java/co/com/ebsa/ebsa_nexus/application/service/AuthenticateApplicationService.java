@@ -29,8 +29,8 @@ public class AuthenticateApplicationService {
 
     public LoginResponseDTO login(LoginRequestDTO request) {
         try {
-            User user = userRepository.findByUsernameAndActiveTrue(request.username())
-                    .orElseThrow(() -> new AuthenticationException("Usuario no encontrado o inactivo"));
+            User user = userRepository.findByEmailAndActiveTrue(request.email())
+                    .orElseThrow(() -> new AuthenticationException("Email no encontrado o usuario inactivo"));
 
             if (!passwordEncoder.matches(request.password(), user.getPwdHash())) {
                 throw new AuthenticationException("Credenciales inválidas");
@@ -42,9 +42,11 @@ public class AuthenticateApplicationService {
 
             // Generar token con rol (usar el nombre del rol de la entidad Role)
             String roleName = user.getRole().getName();
-            String token = jwtUtil.generateToken(user.getUsername(), roleName);
+            String workRoleName = user.getWorkRole() != null ? user.getWorkRole().getName() : null;
+            String workType = user.getWorkType() != null ? user.getWorkType().name() : null;
+            String token = jwtUtil.generateToken(user.getEmail(), roleName);
 
-            return new LoginResponseDTO(token, user.getUsername(), roleName);
+            return new LoginResponseDTO(token, user.getEmail(), user.getUsername(), roleName, workRoleName, workType);
 
         } catch (Exception e) {
             throw new AuthenticationException("Error durante la autenticación: " + e.getMessage());

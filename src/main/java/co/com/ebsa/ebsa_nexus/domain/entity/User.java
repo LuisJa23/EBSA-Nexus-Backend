@@ -48,6 +48,13 @@ public class User {
     @JoinColumn(name = "role_id", insertable = false, updatable = false)
     private Role role;
 
+    @Column(name = "work_role_id")
+    private Integer workRoleId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "work_role_id", insertable = false, updatable = false)
+    private WorkRole workRole;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "work_type", length = 10)
     private WorkType workType;

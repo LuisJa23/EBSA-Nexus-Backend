@@ -1,4 +1,4 @@
-package co.com.ebsa.ebsa_nexus.presentation;
+package co.com.ebsa.ebsa_nexus.presentation.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

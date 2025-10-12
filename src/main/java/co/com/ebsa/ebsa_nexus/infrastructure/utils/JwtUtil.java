@@ -34,12 +34,12 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String email) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuer(jwtIssuer)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
@@ -47,12 +47,12 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateToken(String username, String role) {
+    public String generateToken(String email, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .claim("role", role)
                 .setIssuer(jwtIssuer)
                 .setIssuedAt(now)
@@ -92,16 +92,25 @@ public class JwtUtil {
     }
 
     /**
-     * Extrae el nombre de usuario (subject) del token JWT.
+     * Extrae el email (subject) del token JWT.
      * 
-     * @param token el token JWT del cual extraer el username
-     * @return el username o null si el token es inválido o vacío
+     * @param token el token JWT del cual extraer el email
+     * @return el email o null si el token es inválido o vacío
      */
-    public String extractUsername(String token) {
+    public String extractEmail(String token) {
         if (token == null || token.trim().isEmpty()) {
             return null;
         }
         return getClaims(token).getSubject();
+    }
+
+    /**
+     * Método de compatibilidad - extrae el email del token JWT.
+     * @deprecated Use extractEmail instead
+     */
+    @Deprecated
+    public String extractUsername(String token) {
+        return extractEmail(token);
     }
 
     /**

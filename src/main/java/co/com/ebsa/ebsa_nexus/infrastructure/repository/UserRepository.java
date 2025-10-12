@@ -15,13 +15,13 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
 
-    @Query("SELECT u FROM User u JOIN FETCH u.role WHERE u.username = :username AND u.active = true")
+    @Query("SELECT u FROM User u JOIN FETCH u.role LEFT JOIN FETCH u.workRole WHERE u.username = :username AND u.active = true")
     Optional<User> findByUsernameAndActiveTrue(@Param("username") String username);
 
-    @Query("SELECT u FROM User u JOIN FETCH u.role WHERE u.id = :id AND u.active = true")
+    @Query("SELECT u FROM User u JOIN FETCH u.role LEFT JOIN FETCH u.workRole WHERE u.id = :id AND u.active = true")
     Optional<User> findByIdAndActiveTrue(@Param("id") Integer id);
 
-    @Query("SELECT u FROM User u JOIN FETCH u.role WHERE u.email = :email AND u.active = true")
+    @Query("SELECT u FROM User u JOIN FETCH u.role LEFT JOIN FETCH u.workRole WHERE u.email = :email AND u.active = true")
     Optional<User> findByEmailAndActiveTrue(@Param("email") String email);
 
     boolean existsByUsername(String username);
