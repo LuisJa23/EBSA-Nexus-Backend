@@ -68,6 +68,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Spring Boot Actuator para health checks -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
