@@ -18,8 +18,16 @@ public class AuthorizationApplicationService {
         return jwtUtil.validateToken(token);
     }
 
+    public String extractEmail(String token) {
+        return jwtUtil.extractEmail(token);
+    }
+
+    /**
+     * @deprecated Use extractEmail instead
+     */
+    @Deprecated
     public String extractUsername(String token) {
-        return jwtUtil.extractUsername(token);
+        return jwtUtil.extractEmail(token);
     }
 
     public String extractRole(String token) {
