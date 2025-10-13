@@ -1,6 +1,7 @@
 package co.com.ebsa.ebsa_nexus.presentation.controller;
 
 import co.com.ebsa.ebsa_nexus.application.dto.request.CreateUserRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.UpdateOwnProfileRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.UpdateUserRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.response.UserResponse;
 import co.com.ebsa.ebsa_nexus.application.service.UserManagementService;
@@ -15,17 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controller REST para la gestión de usuarios del sistema.
- * Todos los endpoints requieren autenticación y rol de ADMIN.
- * 
- * Funcionalidades:
- * - Crear nuevos usuarios (no admin)
- * - Actualizar usuarios existentes  
- * - Desactivar usuarios
- * - Consultar usuarios por ID
- * - Listar usuarios con paginación
- */
 @Slf4j
 @RestController
 @RequestMapping("/api/users")
@@ -37,11 +27,6 @@ public class UserManagementController {
         this.userManagementService = userManagementService;
     }
     
-    /**
-     * Crea un nuevo usuario en el sistema.
-     * Solo usuarios con rol ADMIN pueden crear usuarios.
-     * No se pueden crear usuarios con rol ADMIN.
-     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> createUser(
@@ -55,11 +40,6 @@ public class UserManagementController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
-    /**
-     * Actualiza los datos de un usuario existente.
-     * Solo usuarios con rol ADMIN pueden actualizar usuarios.
-     * Un admin no puede desactivarse a sí mismo.
-     */
     @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> updateUser(
@@ -74,11 +54,6 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
     
-    /**
-     * Desactiva un usuario del sistema.
-     * Solo usuarios con rol ADMIN pueden desactivar usuarios.
-     * Un admin no puede desactivarse a sí mismo.
-     */
     @PatchMapping("/{userId}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deactivateUser(
@@ -92,10 +67,6 @@ public class UserManagementController {
         return ResponseEntity.noContent().build();
     }
     
-    /**
-     * Obtiene los detalles de un usuario específico.
-     * Solo usuarios con rol ADMIN pueden consultar detalles de usuarios.
-     */
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> getUserById(
@@ -109,10 +80,6 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
     
-    /**
-     * Obtiene una lista paginada de todos los usuarios del sistema.
-     * Solo usuarios con rol ADMIN pueden listar usuarios.
-     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserResponse>> getAllUsers(
@@ -123,6 +90,17 @@ public class UserManagementController {
                 authentication.getName(), pageable);
                 
         Page<UserResponse> response = userManagementService.getAllUsers(pageable, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<UserResponse> updateOwnProfile(
+            @Valid @RequestBody UpdateOwnProfileRequest request,
+            Authentication authentication) {
+        
+        log.info("User updating own profile: {}", authentication.getName());
+        
+        UserResponse response = userManagementService.updateOwnProfile(request, authentication.getName());
         return ResponseEntity.ok(response);
     }
 }

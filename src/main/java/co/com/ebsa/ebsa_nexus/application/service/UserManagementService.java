@@ -1,6 +1,7 @@
 package co.com.ebsa.ebsa_nexus.application.service;
 
 import co.com.ebsa.ebsa_nexus.application.dto.request.CreateUserRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.UpdateOwnProfileRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.UpdateUserRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.response.UserResponse;
 import co.com.ebsa.ebsa_nexus.domain.entity.Role;
@@ -204,6 +205,35 @@ public class UserManagementService {
                     workRoleRepository.findById(user.getWorkRoleId()).orElse(null) : null;
                 return mapToUserResponse(user, role, workRole);
             });
+    }
+    
+    /**
+     * Permite a un usuario actualizar su propio perfil.
+     * Solo puede actualizar: firstName, lastName y phone.
+     * No puede modificar email, username, password, documentNumber, roles ni permisos.
+     * Se valida mediante el email del token JWT que el usuario solo actualice sus propios datos.
+     */
+    public UserResponse updateOwnProfile(UpdateOwnProfileRequest request, String authenticatedUserEmail) {
+        log.info("User updating own profile: {}", authenticatedUserEmail);
+        
+        // Buscar el usuario autenticado
+        User user = userRepository.findByEmail(authenticatedUserEmail)
+            .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+        
+        // Actualizar solo los campos permitidos
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setPhone(request.phone());
+        
+        User updatedUser = userRepository.save(user);
+        
+        // Cargar relaciones para la respuesta
+        Role role = roleRepository.findById(updatedUser.getRoleId()).orElse(null);
+        WorkRole workRole = updatedUser.getWorkRoleId() != null ? 
+            workRoleRepository.findById(updatedUser.getWorkRoleId()).orElse(null) : null;
+        
+        log.info("User profile updated successfully: {}", authenticatedUserEmail);
+        return mapToUserResponse(updatedUser, role, workRole);
     }
     
     /**
