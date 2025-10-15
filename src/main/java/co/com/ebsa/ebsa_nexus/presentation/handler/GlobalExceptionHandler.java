@@ -1,5 +1,6 @@
 package co.com.ebsa.ebsa_nexus.presentation.handler;
 
+import co.com.ebsa.ebsa_nexus.application.dto.response.ValidationErrorResponse;
 import co.com.ebsa.ebsa_nexus.domain.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -83,10 +84,57 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * Maneja excepciones cuando se intenta crear/actualizar con campos duplicados.
+     */
+    @ExceptionHandler(DuplicateFieldException.class)
+    public ResponseEntity<ValidationErrorResponse> handleDuplicateField(DuplicateFieldException ex) {
+        log.error("Duplicate field error: {} - {}", ex.getField(), ex.getValue());
+        ValidationErrorResponse error = new ValidationErrorResponse(
+            "DUPLICATE_FIELD",
+            ex.getMessage(),
+            ex.getField(),
+            ex.getValue()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    /**
+     * Maneja excepciones cuando múltiples campos tienen valores duplicados.
+     * Retorna todos los campos duplicados en una sola respuesta.
+     */
+    @ExceptionHandler(MultipleDuplicateFieldsException.class)
+    public ResponseEntity<co.com.ebsa.ebsa_nexus.application.dto.response.MultipleDuplicateFieldsResponse> 
+            handleMultipleDuplicateFields(MultipleDuplicateFieldsException ex) {
+        log.error("Multiple duplicate fields error: {}", ex.getDuplicateFields());
+        co.com.ebsa.ebsa_nexus.application.dto.response.MultipleDuplicateFieldsResponse error = 
+            new co.com.ebsa.ebsa_nexus.application.dto.response.MultipleDuplicateFieldsResponse(
+                "DUPLICATE_FIELDS",
+                "Se encontraron múltiples campos duplicados",
+                ex.getDuplicateFields()
+            );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    /**
+     * Maneja excepciones cuando el WorkRole no coincide con el WorkType.
+     */
+    @ExceptionHandler(InvalidWorkRoleException.class)
+    public ResponseEntity<ValidationErrorResponse> handleInvalidWorkRole(InvalidWorkRoleException ex) {
+        log.error("Invalid work role error: {} for {}", ex.getWorkRole(), ex.getWorkType());
+        ValidationErrorResponse error = new ValidationErrorResponse(
+            "INVALID_WORK_ROLE",
+            ex.getMessage(),
+            "workRole",
+            ex.getWorkRole()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    /**
      * Maneja errores de validación de datos de entrada.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ValidationErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ValidationErrorResponseOld> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -94,7 +142,7 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse(
+        ValidationErrorResponseOld errorResponse = new ValidationErrorResponseOld(
             HttpStatus.BAD_REQUEST.value(),
             "Datos de entrada inválidos",
             errors,
@@ -131,9 +179,9 @@ public class GlobalExceptionHandler {
     ) {}
     
     /**
-     * DTO para respuestas de errores de validación.
+     * DTO para respuestas de errores de validación (legacy para MethodArgumentNotValidException).
      */
-    public record ValidationErrorResponse(
+    public record ValidationErrorResponseOld(
         int status,
         String error,
         Map<String, String> validationErrors,

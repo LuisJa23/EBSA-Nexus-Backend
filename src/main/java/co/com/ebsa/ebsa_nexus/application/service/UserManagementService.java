@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -59,8 +61,9 @@ public class UserManagementService {
         // Validar que no se está creando un admin
         validateNotCreatingAdmin(request.roleId());
         
-        // Validar unicidad
-        validateUserUniqueness(request.email(), request.username());
+        // Validar unicidad (email, username, documento, teléfono)
+        validateUserUniqueness(request.email(), request.username(), 
+                              request.documentNumber(), request.phone());
         
         // Validar que el rol existe
         Role role = roleRepository.findById(request.roleId())
@@ -72,6 +75,9 @@ public class UserManagementService {
             workRole = workRoleRepository.findById(request.workRoleId())
                 .orElseThrow(() -> new UserNotFoundException("Work Role con ID " + request.workRoleId() + " no encontrado"));
         }
+        
+        // Validar que el WorkRole coincida con el WorkType
+        validateWorkRoleMatchesWorkType(request.workRoleId(), request.workType());
         
         // Crear usuario
         User user = User.builder()
@@ -117,7 +123,8 @@ public class UserManagementService {
         }
         
         // Validar unicidad si se cambian email o username
-        validateUpdateUniqueness(existingUser, request.email(), request.username());
+        validateUpdateUniqueness(userId, request.email(), request.username(), 
+                                request.documentNumber(), request.phone());
         
         // Actualizar campos no nulos
         if (request.username() != null) existingUser.setUsername(request.username());
@@ -135,6 +142,13 @@ public class UserManagementService {
         if (request.documentNumber() != null) existingUser.setDocumentNumber(request.documentNumber());
         if (request.phone() != null) existingUser.setPhone(request.phone());
         if (request.active() != null) existingUser.setActive(request.active());
+        
+        // Validar WorkRole si se actualiza workRoleId o workType
+        User.WorkType finalWorkType = request.workType() != null ? 
+            request.workType() : existingUser.getWorkType();
+        Integer finalWorkRoleId = request.workRoleId() != null ? 
+            request.workRoleId() : existingUser.getWorkRoleId();
+        validateWorkRoleMatchesWorkType(finalWorkRoleId, finalWorkType);
         
         User updatedUser = userRepository.save(existingUser);
         
@@ -208,6 +222,26 @@ public class UserManagementService {
     }
     
     /**
+     * Obtiene los datos del usuario autenticado actual.
+     * Extrae el email del token JWT y retorna todos los datos del usuario.
+     */
+    public UserResponse getCurrentUser(String authenticatedUserEmail) {
+        log.info("Getting current user data for: {}", authenticatedUserEmail);
+        
+        // Buscar el usuario autenticado
+        User user = userRepository.findByEmail(authenticatedUserEmail)
+            .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+        
+        // Cargar relaciones para la respuesta
+        Role role = roleRepository.findById(user.getRoleId()).orElse(null);
+        WorkRole workRole = user.getWorkRoleId() != null ? 
+            workRoleRepository.findById(user.getWorkRoleId()).orElse(null) : null;
+        
+        log.info("Current user data retrieved successfully: {}", authenticatedUserEmail);
+        return mapToUserResponse(user, role, workRole);
+    }
+
+    /**
      * Permite a un usuario actualizar su propio perfil.
      * Solo puede actualizar: firstName, lastName y phone.
      * No puede modificar email, username, password, documentNumber, roles ni permisos.
@@ -261,27 +295,102 @@ public class UserManagementService {
     
     /**
      * Valida que email y username sean únicos para nuevos usuarios.
+     * Acumula TODOS los campos duplicados y los retorna en una sola excepción.
      */
-    private void validateUserUniqueness(String email, String username) {
+    private void validateUserUniqueness(String email, String username, 
+                                       String documentNumber, String phone) {
+        Map<String, String> duplicateFields = new HashMap<>();
+        
         if (userRepository.existsByEmail(email)) {
-            throw new UserAlreadyExistsException("Ya existe un usuario con el email: " + email);
+            duplicateFields.put("email", "Ya existe un usuario con este email");
         }
         if (userRepository.existsByUsername(username)) {
-            throw new UserAlreadyExistsException("Ya existe un usuario con el username: " + username);
+            duplicateFields.put("username", "Ya existe un usuario con este username");
+        }
+        if (documentNumber != null && !documentNumber.isBlank() && 
+            userRepository.existsByDocumentNumber(documentNumber)) {
+            duplicateFields.put("documento", "Ya existe un usuario con este número de documento");
+        }
+        if (phone != null && !phone.isBlank() && 
+            userRepository.existsByPhone(phone)) {
+            duplicateFields.put("teléfono", "Ya existe un usuario con este teléfono");
+        }
+        
+        if (!duplicateFields.isEmpty()) {
+            if (duplicateFields.size() == 1) {
+                // Si solo hay un campo duplicado, usar la excepción simple
+                Map.Entry<String, String> entry = duplicateFields.entrySet().iterator().next();
+                throw new DuplicateFieldException(entry.getKey(), 
+                    entry.getKey().equals("email") ? email :
+                    entry.getKey().equals("username") ? username :
+                    entry.getKey().equals("documento") ? documentNumber : phone);
+            } else {
+                // Si hay múltiples campos duplicados, usar la excepción múltiple
+                throw new MultipleDuplicateFieldsException(duplicateFields);
+            }
         }
     }
     
     /**
      * Valida unicidad para actualizaciones de usuarios existentes.
+     * Acumula TODOS los campos duplicados y los retorna en una sola excepción.
      */
-    private void validateUpdateUniqueness(User existingUser, String newEmail, String newUsername) {
-        if (newEmail != null && !newEmail.equals(existingUser.getEmail()) && 
-            userRepository.existsByEmail(newEmail)) {
-            throw new UserAlreadyExistsException("Ya existe un usuario con el email: " + newEmail);
+    private void validateUpdateUniqueness(Integer userId, String newEmail, String newUsername,
+                                         String newDocumentNumber, String newPhone) {
+        Map<String, String> duplicateFields = new HashMap<>();
+        
+        if (newEmail != null && userRepository.existsByEmailAndIdNot(newEmail, userId)) {
+            duplicateFields.put("email", "Ya existe un usuario con este email");
         }
-        if (newUsername != null && !newUsername.equals(existingUser.getUsername()) && 
-            userRepository.existsByUsername(newUsername)) {
-            throw new UserAlreadyExistsException("Ya existe un usuario con el username: " + newUsername);
+        if (newUsername != null && userRepository.existsByUsernameAndIdNot(newUsername, userId)) {
+            duplicateFields.put("username", "Ya existe un usuario con este username");
+        }
+        if (newDocumentNumber != null && !newDocumentNumber.isBlank() && 
+            userRepository.existsByDocumentNumberAndIdNot(newDocumentNumber, userId)) {
+            duplicateFields.put("documento", "Ya existe un usuario con este número de documento");
+        }
+        if (newPhone != null && !newPhone.isBlank() && 
+            userRepository.existsByPhoneAndIdNot(newPhone, userId)) {
+            duplicateFields.put("teléfono", "Ya existe un usuario con este teléfono");
+        }
+        
+        if (!duplicateFields.isEmpty()) {
+            if (duplicateFields.size() == 1) {
+                // Si solo hay un campo duplicado, usar la excepción simple
+                Map.Entry<String, String> entry = duplicateFields.entrySet().iterator().next();
+                throw new DuplicateFieldException(entry.getKey(),
+                    entry.getKey().equals("email") ? newEmail :
+                    entry.getKey().equals("username") ? newUsername :
+                    entry.getKey().equals("documento") ? newDocumentNumber : newPhone);
+            } else {
+                // Si hay múltiples campos duplicados, usar la excepción múltiple
+                throw new MultipleDuplicateFieldsException(duplicateFields);
+            }
+        }
+    }
+    
+    /**
+     * Valida que el WorkRole coincida con el WorkType del usuario.
+     * - Trabajadores INTERNOS solo pueden tener roles INTERNOS
+     * - Trabajadores EXTERNOS solo pueden tener roles EXTERNOS
+     */
+    private void validateWorkRoleMatchesWorkType(Integer workRoleId, User.WorkType workType) {
+        // Si alguno es null, no validar (campos opcionales)
+        if (workRoleId == null || workType == null) {
+            return;
+        }
+        
+        WorkRole workRole = workRoleRepository.findById(workRoleId)
+            .orElseThrow(() -> new UserNotFoundException("Work Role con ID " + workRoleId + " no encontrado"));
+        
+        // Mapear WorkType de User a WorkRoleType de WorkRole
+        WorkRole.WorkRoleType expectedType = (workType == User.WorkType.intern) 
+            ? WorkRole.WorkRoleType.INTERNO 
+            : WorkRole.WorkRoleType.EXTERNO;
+        
+        if (!workRole.getType().equals(expectedType)) {
+            String workTypeName = (workType == User.WorkType.intern) ? "INTERNO" : "EXTERNO";
+            throw new InvalidWorkRoleException(workTypeName, workRole.getName());
         }
     }
     

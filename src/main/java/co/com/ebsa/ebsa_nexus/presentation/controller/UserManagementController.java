@@ -93,6 +93,14 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
+        log.info("User requesting own profile data: {}", authentication.getName());
+        
+        UserResponse response = userManagementService.getCurrentUser(authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/me")
     public ResponseEntity<UserResponse> updateOwnProfile(
             @Valid @RequestBody UpdateOwnProfileRequest request,

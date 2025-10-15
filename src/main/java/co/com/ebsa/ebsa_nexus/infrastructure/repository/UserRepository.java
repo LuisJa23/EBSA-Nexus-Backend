@@ -47,4 +47,22 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     
     @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.email = :email")
     boolean existsByEmail(@Param("email") String email);
+    
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.email = :email AND u.id != :id")
+    boolean existsByEmailAndIdNot(@Param("email") String email, @Param("id") Integer id);
+    
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.username = :username AND u.id != :id")
+    boolean existsByUsernameAndIdNot(@Param("username") String username, @Param("id") Integer id);
+    
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.documentNumber = :documentNumber")
+    boolean existsByDocumentNumber(@Param("documentNumber") String documentNumber);
+    
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.documentNumber = :documentNumber AND u.id != :id")
+    boolean existsByDocumentNumberAndIdNot(@Param("documentNumber") String documentNumber, @Param("id") Integer id);
+    
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.phone = :phone")
+    boolean existsByPhone(@Param("phone") String phone);
+    
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.phone = :phone AND u.id != :id")
+    boolean existsByPhoneAndIdNot(@Param("phone") String phone, @Param("id") Integer id);
 }
