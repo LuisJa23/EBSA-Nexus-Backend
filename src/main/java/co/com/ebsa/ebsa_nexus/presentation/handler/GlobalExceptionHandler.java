@@ -85,16 +85,22 @@ public class GlobalExceptionHandler {
     
     /**
      * Maneja excepciones cuando se intenta crear/actualizar con campos duplicados.
+     * Siempre devuelve el formato con validationErrors para consistencia.
      */
     @ExceptionHandler(DuplicateFieldException.class)
-    public ResponseEntity<ValidationErrorResponse> handleDuplicateField(DuplicateFieldException ex) {
+    public ResponseEntity<co.com.ebsa.ebsa_nexus.application.dto.response.MultipleDuplicateFieldsResponse> 
+            handleDuplicateField(DuplicateFieldException ex) {
         log.error("Duplicate field error: {} - {}", ex.getField(), ex.getValue());
-        ValidationErrorResponse error = new ValidationErrorResponse(
-            "DUPLICATE_FIELD",
-            ex.getMessage(),
-            ex.getField(),
-            ex.getValue()
-        );
+        // Convertir a formato de Map para consistencia
+        Map<String, String> errors = new HashMap<>();
+        errors.put(ex.getField(), ex.getMessage());
+        
+        co.com.ebsa.ebsa_nexus.application.dto.response.MultipleDuplicateFieldsResponse error = 
+            new co.com.ebsa.ebsa_nexus.application.dto.response.MultipleDuplicateFieldsResponse(
+                "DUPLICATE_FIELDS",
+                "Se encontraron campos duplicados",
+                errors
+            );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
     
@@ -109,7 +115,7 @@ public class GlobalExceptionHandler {
         co.com.ebsa.ebsa_nexus.application.dto.response.MultipleDuplicateFieldsResponse error = 
             new co.com.ebsa.ebsa_nexus.application.dto.response.MultipleDuplicateFieldsResponse(
                 "DUPLICATE_FIELDS",
-                "Se encontraron múltiples campos duplicados",
+                "Se encontraron campos duplicados",
                 ex.getDuplicateFields()
             );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
