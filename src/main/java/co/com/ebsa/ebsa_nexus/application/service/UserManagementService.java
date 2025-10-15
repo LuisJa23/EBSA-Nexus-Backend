@@ -400,6 +400,47 @@ public class UserManagementService {
     }
     
     /**
+     * Permite a un usuario cambiar su propia contraseña.
+     * Valida que la contraseña actual sea correcta antes de actualizar.
+     * El email del usuario se extrae del token JWT mediante Authentication.
+     * 
+     * @param request contiene contraseña actual, nueva y confirmación
+     * @param authenticatedUserEmail email extraído del JWT token
+     * @throws InvalidPasswordException si la contraseña actual es incorrecta
+     * @throws InvalidPasswordException si las contraseñas nuevas no coinciden
+     * @throws UserNotFoundException si el usuario no existe
+     */
+    public void changePassword(co.com.ebsa.ebsa_nexus.application.dto.request.ChangePasswordRequest request, 
+                               String authenticatedUserEmail) {
+        log.info("User changing password: {}", authenticatedUserEmail);
+        
+        // 1. Validar que las nuevas contraseñas coincidan
+        if (!request.newPassword().equals(request.confirmPassword())) {
+            throw new InvalidPasswordException("Las contraseñas nuevas no coinciden");
+        }
+        
+        // 2. Validar que la nueva contraseña sea diferente a la actual
+        if (request.currentPassword().equals(request.newPassword())) {
+            throw new InvalidPasswordException("La nueva contraseña debe ser diferente a la actual");
+        }
+        
+        // 3. Buscar el usuario por email (extraído del token)
+        User user = userRepository.findByEmail(authenticatedUserEmail)
+            .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+        
+        // 4. Validar que la contraseña actual sea correcta
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPwdHash())) {
+            throw new InvalidPasswordException("La contraseña actual es incorrecta");
+        }
+        
+        // 5. Encriptar y actualizar la nueva contraseña
+        user.setPwdHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+        
+        log.info("Password changed successfully for user: {}", authenticatedUserEmail);
+    }
+    
+    /**
      * Convierte una entidad User a UserResponse incluyendo nombres de roles.
      */
     private UserResponse mapToUserResponse(User user, Role role, WorkRole workRole) {

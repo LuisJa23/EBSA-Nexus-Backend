@@ -84,6 +84,21 @@ public class GlobalExceptionHandler {
     }
     
     /**
+     * Maneja excepciones cuando la contraseña es inválida.
+     */
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidPassword(InvalidPasswordException ex) {
+        log.error("Invalid password error: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(),
+            "Contraseña inválida",
+            ex.getMessage(),
+            LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    /**
      * Maneja excepciones cuando se intenta crear/actualizar con campos duplicados.
      * Siempre devuelve el formato con validationErrors para consistencia.
      */

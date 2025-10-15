@@ -111,4 +111,25 @@ public class UserManagementController {
         UserResponse response = userManagementService.updateOwnProfile(request, authentication.getName());
         return ResponseEntity.ok(response);
     }
+    
+    /**
+     * Endpoint para cambiar la contraseña del usuario autenticado.
+     * El usuario debe estar autenticado (cualquier rol).
+     * Se requiere la contraseña actual para validación de seguridad.
+     * 
+     * @param request contiene contraseña actual, nueva y confirmación
+     * @param authentication contiene el email del usuario autenticado (extraído del JWT)
+     * @return 204 No Content si el cambio fue exitoso
+     */
+        @PatchMapping("/me/change-password")
+    public ResponseEntity<Void> changePassword(
+            @Valid @RequestBody co.com.ebsa.ebsa_nexus.application.dto.request.ChangePasswordRequest request,
+            Authentication authentication) {
+        
+        log.info("User requesting password change: {}", authentication.getName());
+        
+        userManagementService.changePassword(request, authentication.getName());
+        
+        return ResponseEntity.noContent().build();
+    }
 }
