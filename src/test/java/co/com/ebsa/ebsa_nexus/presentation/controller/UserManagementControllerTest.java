@@ -60,7 +60,7 @@ class UserManagementControllerTest {
 
         createRequest = new CreateUserRequest(
             "newuser", "newuser@example.com", "password123",
-            "New", "User", 2, null, WorkType.intern,
+            "New", "User", "TRABAJADOR", null, "intern",
             "12345678", "3001234567"
         );
 

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import co.com.ebsa.ebsa_nexus.domain.entity.WorkRole;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * WorkRoleRepository usando Spring Data JPA
@@ -13,6 +14,8 @@ import java.util.List;
 @Repository
 public interface WorkRoleRepository extends JpaRepository<WorkRole, Integer> {
 
+    Optional<WorkRole> findByName(String name);
+    
     List<WorkRole> findByTypeOrderByName(WorkRole.WorkRoleType type);
     
     List<WorkRole> findAllByOrderByTypeAscNameAsc();

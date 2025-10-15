@@ -5,7 +5,6 @@ import co.com.ebsa.ebsa_nexus.application.dto.request.UpdateUserRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.response.UserResponse;
 import co.com.ebsa.ebsa_nexus.domain.entity.Role;
 import co.com.ebsa.ebsa_nexus.domain.entity.User;
-import co.com.ebsa.ebsa_nexus.domain.entity.User.WorkType;
 import co.com.ebsa.ebsa_nexus.domain.exception.UnauthorizedOperationException;
 import co.com.ebsa.ebsa_nexus.domain.exception.UserAlreadyExistsException;
 import co.com.ebsa.ebsa_nexus.domain.exception.UserNotFoundException;
@@ -96,13 +95,13 @@ class UserManagementServiceTest {
         // Arrange
         CreateUserRequest request = new CreateUserRequest(
             "newuser", "newuser@example.com", "password123",
-            "New", "User", 2, null, WorkType.intern,
+            "New", "User", "TRABAJADOR", null, "intern",
             "12345678", "3001234567"
         );
         
         when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(adminUser));
         when(roleRepository.findById(1)).thenReturn(Optional.of(adminRole));
-        when(roleRepository.findById(2)).thenReturn(Optional.of(workerRole));
+        when(roleRepository.findByName("TRABAJADOR")).thenReturn(Optional.of(workerRole));
         when(userRepository.existsByEmail(request.email())).thenReturn(false);
         when(userRepository.existsByUsername(request.username())).thenReturn(false);
         when(passwordEncoder.encode(request.password())).thenReturn("hashedPassword");
@@ -131,7 +130,7 @@ class UserManagementServiceTest {
         // Arrange
         CreateUserRequest request = new CreateUserRequest(
             "newuser", "newuser@example.com", "password123",
-            "New", "User", 2, null, WorkType.intern,
+            "New", "User", "TRABAJADOR", null, "intern",
             "12345678", "3001234567"
         );
         
@@ -151,7 +150,7 @@ class UserManagementServiceTest {
         // Arrange
         CreateUserRequest request = new CreateUserRequest(
             "newadmin", "newadmin@example.com", "password123",
-            "New", "Admin", 1, null, WorkType.intern,
+            "New", "Admin", "ADMIN", null, "intern",
             "12345678", "3001234567"
         );
         
@@ -171,7 +170,7 @@ class UserManagementServiceTest {
         // Arrange
         CreateUserRequest request = new CreateUserRequest(
             "newuser", "existing@example.com", "password123",
-            "New", "User", 2, null, WorkType.intern,
+            "New", "User", "TRABAJADOR", null, "intern",
             "12345678", "3001234567"
         );
         

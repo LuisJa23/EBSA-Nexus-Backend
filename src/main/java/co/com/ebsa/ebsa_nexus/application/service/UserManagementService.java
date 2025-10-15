@@ -59,25 +59,28 @@ public class UserManagementService {
         validateAdminRole(currentUserEmail);
         
         // Validar que no se está creando un admin
-        validateNotCreatingAdmin(request.roleId());
+        validateNotCreatingAdmin(request.roleName());
         
         // Validar unicidad (email, username, documento, teléfono)
         validateUserUniqueness(request.email(), request.username(), 
                               request.documentNumber(), request.phone());
         
-        // Validar que el rol existe
-        Role role = roleRepository.findById(request.roleId())
-            .orElseThrow(() -> new UserNotFoundException("Rol con ID " + request.roleId() + " no encontrado"));
+        // Buscar el rol por nombre
+        Role role = roleRepository.findByName(request.roleName())
+            .orElseThrow(() -> new UserNotFoundException("Rol '" + request.roleName() + "' no encontrado"));
+        
+        // Convertir workType string a enum
+        User.WorkType workTypeEnum = User.WorkType.valueOf(request.workType());
         
         // Validar work role si se proporciona
         WorkRole workRole = null;
-        if (request.workRoleId() != null) {
-            workRole = workRoleRepository.findById(request.workRoleId())
-                .orElseThrow(() -> new UserNotFoundException("Work Role con ID " + request.workRoleId() + " no encontrado"));
+        if (request.workRoleName() != null && !request.workRoleName().isBlank()) {
+            workRole = workRoleRepository.findByName(request.workRoleName())
+                .orElseThrow(() -> new UserNotFoundException("Work Role '" + request.workRoleName() + "' no encontrado"));
         }
         
         // Validar que el WorkRole coincida con el WorkType
-        validateWorkRoleMatchesWorkType(request.workRoleId(), request.workType());
+        validateWorkRoleMatchesWorkType(workRole != null ? workRole.getId() : null, workTypeEnum);
         
         // Crear usuario
         User user = User.builder()
@@ -87,9 +90,9 @@ public class UserManagementService {
             .pwdHash(passwordEncoder.encode(request.password()))
             .firstName(request.firstName())
             .lastName(request.lastName())
-            .roleId(request.roleId())
-            .workRoleId(request.workRoleId())
-            .workType(request.workType())
+            .roleId(role.getId())
+            .workRoleId(workRole != null ? workRole.getId() : null)
+            .workType(workTypeEnum)
             .documentNumber(request.documentNumber())
             .phone(request.phone())
             .active(true)
@@ -133,8 +136,11 @@ public class UserManagementService {
         if (request.firstName() != null) existingUser.setFirstName(request.firstName());
         if (request.lastName() != null) existingUser.setLastName(request.lastName());
         if (request.roleId() != null) {
+            // Validar que el rol existe
+            Role newRole = roleRepository.findById(request.roleId())
+                .orElseThrow(() -> new UserNotFoundException("Rol con ID " + request.roleId() + " no encontrado"));
             // Validar que no se está convirtiendo en admin
-            validateNotCreatingAdmin(request.roleId());
+            validateNotCreatingAdmin(newRole.getName());
             existingUser.setRoleId(request.roleId());
         }
         if (request.workRoleId() != null) existingUser.setWorkRoleId(request.workRoleId());
@@ -286,9 +292,8 @@ public class UserManagementService {
     /**
      * Valida que no se esté intentando crear un usuario con rol ADMIN.
      */
-    private void validateNotCreatingAdmin(Integer roleId) {
-        Role role = roleRepository.findById(roleId).orElse(null);
-        if (role != null && "ADMIN".equals(role.getName())) {
+    private void validateNotCreatingAdmin(String roleName) {
+        if ("ADMIN".equalsIgnoreCase(roleName)) {
             throw new UnauthorizedOperationException("No se pueden crear usuarios administradores");
         }
     }
