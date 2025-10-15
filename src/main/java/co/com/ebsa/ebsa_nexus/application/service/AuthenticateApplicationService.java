@@ -46,7 +46,7 @@ public class AuthenticateApplicationService {
             String workType = user.getWorkType() != null ? user.getWorkType().name() : null;
             String token = jwtUtil.generateToken(user.getEmail(), roleName);
 
-            return new LoginResponseDTO(token, user.getEmail(), user.getUsername(), roleName, workRoleName, workType);
+            return new LoginResponseDTO(user.getId(), token, user.getEmail(), user.getUsername(), roleName, workRoleName, workType);
 
         } catch (Exception e) {
             throw new AuthenticationException("Error durante la autenticación: " + e.getMessage());

@@ -87,6 +87,58 @@ public interface UserDomainRepository {
     boolean existsByUsername(String username);
     
     /**
+     * Verifica si existe un usuario con el email dado, excluyendo un usuario específico.
+     * 
+     * @param email Email a verificar
+     * @param id ID del usuario a excluir de la búsqueda
+     * @return true si existe otro usuario con ese email, false en caso contrario
+     */
+    boolean existsByEmailAndIdNot(String email, Integer id);
+    
+    /**
+     * Verifica si existe un usuario con el username dado, excluyendo un usuario específico.
+     * 
+     * @param username Username a verificar
+     * @param id ID del usuario a excluir de la búsqueda
+     * @return true si existe otro usuario con ese username, false en caso contrario
+     */
+    boolean existsByUsernameAndIdNot(String username, Integer id);
+    
+    /**
+     * Verifica si existe un usuario con el número de documento dado.
+     * 
+     * @param documentNumber Número de documento a verificar
+     * @return true si existe, false en caso contrario
+     */
+    boolean existsByDocumentNumber(String documentNumber);
+    
+    /**
+     * Verifica si existe un usuario con el número de documento dado, excluyendo un usuario específico.
+     * 
+     * @param documentNumber Número de documento a verificar
+     * @param id ID del usuario a excluir de la búsqueda
+     * @return true si existe otro usuario con ese documento, false en caso contrario
+     */
+    boolean existsByDocumentNumberAndIdNot(String documentNumber, Integer id);
+    
+    /**
+     * Verifica si existe un usuario con el teléfono dado.
+     * 
+     * @param phone Teléfono a verificar
+     * @return true si existe, false en caso contrario
+     */
+    boolean existsByPhone(String phone);
+    
+    /**
+     * Verifica si existe un usuario con el teléfono dado, excluyendo un usuario específico.
+     * 
+     * @param phone Teléfono a verificar
+     * @param id ID del usuario a excluir de la búsqueda
+     * @return true si existe otro usuario con ese teléfono, false en caso contrario
+     */
+    boolean existsByPhoneAndIdNot(String phone, Integer id);
+    
+    /**
      * Elimina un usuario del repositorio.
      * 
      * @param user Usuario a eliminar

@@ -1,6 +1,5 @@
 package co.com.ebsa.ebsa_nexus.application.dto.request;
 
-import co.com.ebsa.ebsa_nexus.domain.entity.User.WorkType;
 import jakarta.validation.constraints.*;
 
 /**
@@ -29,12 +28,14 @@ public record CreateUserRequest(
     @Size(max = 45, message = "El apellido no puede exceder 45 caracteres")
     String lastName,
     
-    @NotNull(message = "El ID del rol es obligatorio")
-    Integer roleId,
+    @NotBlank(message = "El nombre del rol es obligatorio")
+    String roleName,
     
-    Integer workRoleId,
+    String workRoleName,
     
-    WorkType workType,
+    @NotBlank(message = "El tipo de trabajo es obligatorio")
+    @Pattern(regexp = "intern|extern", message = "El tipo de trabajo debe ser 'intern' o 'extern'")
+    String workType,
     
     @Size(max = 45, message = "El número de documento no puede exceder 45 caracteres")
     String documentNumber,

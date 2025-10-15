@@ -39,12 +39,14 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(
+                    "/api/auth/**",
                     "/auth/**", 
                     "/actuator/**", 
                     "/health", 
                     "/error"
                 ).permitAll()
-                .requestMatchers("/api/users/**").hasRole("ADMIN")
+                .requestMatchers("/api/users/me").authenticated()  // Permitir a cualquier usuario autenticado
+                .requestMatchers("/api/users/**").hasRole("ADMIN") // Solo ADMIN para el resto de endpoints
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

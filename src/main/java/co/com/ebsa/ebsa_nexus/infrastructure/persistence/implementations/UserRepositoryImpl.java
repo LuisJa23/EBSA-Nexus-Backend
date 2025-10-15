@@ -73,6 +73,36 @@ public class UserRepositoryImpl implements UserDomainRepository {
     }
     
     @Override
+    public boolean existsByEmailAndIdNot(String email, Integer id) {
+        return jpaUserRepository.existsByEmailAndIdNot(email, id);
+    }
+    
+    @Override
+    public boolean existsByUsernameAndIdNot(String username, Integer id) {
+        return jpaUserRepository.existsByUsernameAndIdNot(username, id);
+    }
+    
+    @Override
+    public boolean existsByDocumentNumber(String documentNumber) {
+        return jpaUserRepository.existsByDocumentNumber(documentNumber);
+    }
+    
+    @Override
+    public boolean existsByDocumentNumberAndIdNot(String documentNumber, Integer id) {
+        return jpaUserRepository.existsByDocumentNumberAndIdNot(documentNumber, id);
+    }
+    
+    @Override
+    public boolean existsByPhone(String phone) {
+        return jpaUserRepository.existsByPhone(phone);
+    }
+    
+    @Override
+    public boolean existsByPhoneAndIdNot(String phone, Integer id) {
+        return jpaUserRepository.existsByPhoneAndIdNot(phone, id);
+    }
+    
+    @Override
     public void delete(User user) {
         jpaUserRepository.delete(user);
     }
