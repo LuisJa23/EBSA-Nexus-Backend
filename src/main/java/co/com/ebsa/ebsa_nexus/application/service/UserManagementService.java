@@ -390,8 +390,8 @@ public class UserManagementService {
         
         // Mapear WorkType de User a WorkRoleType de WorkRole
         WorkRole.WorkRoleType expectedType = (workType == User.WorkType.intern) 
-            ? WorkRole.WorkRoleType.INTERNO 
-            : WorkRole.WorkRoleType.EXTERNO;
+            ? WorkRole.WorkRoleType.intern 
+            : WorkRole.WorkRoleType.extern;
         
         if (!workRole.getType().equals(expectedType)) {
             String workTypeName = (workType == User.WorkType.intern) ? "INTERNO" : "EXTERNO";
