@@ -43,7 +43,9 @@ public class SecurityConfig {
                     "/auth/**", 
                     "/actuator/**", 
                     "/health", 
-                    "/error"
+                    "/error",
+                    "/api/work-roles",
+                    "/api/work-roles/**" // Permitir acceso público a todos los endpoints de work-roles
                 ).permitAll()
                 .requestMatchers("/api/users/me").authenticated()  // Permitir a cualquier usuario autenticado
                 .requestMatchers("/api/users/**").hasRole("ADMIN") // Solo ADMIN para el resto de endpoints
