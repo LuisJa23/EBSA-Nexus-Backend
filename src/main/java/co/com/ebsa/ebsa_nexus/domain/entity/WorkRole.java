@@ -41,6 +41,7 @@ public class WorkRole {
     private LocalDateTime updatedAt;
 
     public enum WorkRoleType {
-        INTERNO, EXTERNO
+         intern,  // Personal interno
+        extern   // Personal externo
     }
 }

@@ -374,30 +374,30 @@ public class UserManagementService {
         }
     }
     
-    /**
-     * Valida que el WorkRole coincida con el WorkType del usuario.
-     * - Trabajadores INTERNOS solo pueden tener roles INTERNOS
-     * - Trabajadores EXTERNOS solo pueden tener roles EXTERNOS
-     */
-    private void validateWorkRoleMatchesWorkType(Integer workRoleId, User.WorkType workType) {
-        // Si alguno es null, no validar (campos opcionales)
-        if (workRoleId == null || workType == null) {
-            return;
-        }
-        
-        WorkRole workRole = workRoleRepository.findById(workRoleId)
-            .orElseThrow(() -> new UserNotFoundException("Work Role con ID " + workRoleId + " no encontrado"));
-        
-        // Mapear WorkType de User a WorkRoleType de WorkRole
-        WorkRole.WorkRoleType expectedType = (workType == User.WorkType.intern) 
-            ? WorkRole.WorkRoleType.INTERNO 
-            : WorkRole.WorkRoleType.EXTERNO;
-        
-        if (!workRole.getType().equals(expectedType)) {
-            String workTypeName = (workType == User.WorkType.intern) ? "INTERNO" : "EXTERNO";
-            throw new InvalidWorkRoleException(workTypeName, workRole.getName());
-        }
+/**
+ * Valida que el WorkRole coincida con el WorkType del usuario.
+ * - Trabajadores INTERNOS solo pueden tener roles S
+ * - Trabajadores EXTERNOS solo pueden tener roles EXTERNOS
+ */
+private void validateWorkRoleMatchesWorkType(Integer workRoleId, User.WorkType workType) {
+    // Si alguno es null, no validar (campos opcionales)
+    if (workRoleId == null || workType == null) {
+        return;
     }
+
+    WorkRole workRole = workRoleRepository.findById(workRoleId)
+        .orElseThrow(() -> new UserNotFoundException("Work Role con ID " + workRoleId + " no encontrado"));
+
+    // Mapear WorkType de User a WorkRoleType de WorkRole (ambos usan intern/extern)
+    WorkRole.WorkRoleType expectedType = (workType == User.WorkType.intern)
+        ? WorkRole.WorkRoleType.intern
+        : WorkRole.WorkRoleType.extern;
+
+    if (!workRole.getType().equals(expectedType)) {
+        String workTypeName = (workType == User.WorkType.intern) ? "intern" : "extern";
+        throw new InvalidWorkRoleException(workTypeName, workRole.getName());
+    }
+}
     
     /**
      * Convierte una entidad User a UserResponse incluyendo nombres de roles.
