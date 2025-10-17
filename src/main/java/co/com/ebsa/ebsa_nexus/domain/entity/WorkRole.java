@@ -20,7 +20,7 @@ public class WorkRole {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(nullable = false, unique = true, length = 100)
     private String name;

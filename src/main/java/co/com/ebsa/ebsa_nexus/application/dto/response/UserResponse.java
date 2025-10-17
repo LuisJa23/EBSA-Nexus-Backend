@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * Incluye información completa del usuario sin exponer datos sensibles como contraseñas.
  */
 public record UserResponse(
-    Integer id,
+    Long id,
     String uuid,
     String username,
     String email,

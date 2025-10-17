@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import co.com.ebsa.ebsa_nexus.application.dto.request.LoginRequestDTO;
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.LoginRequestDTO;
 import co.com.ebsa.ebsa_nexus.application.dto.response.LoginResponseDTO;
 import co.com.ebsa.ebsa_nexus.application.service.AuthenticateApplicationService;
 

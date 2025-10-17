@@ -21,7 +21,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String uuid;
@@ -42,14 +42,14 @@ public class User {
     private String lastName;
 
     @Column(name = "role_id", nullable = false)
-    private Integer roleId;
+    private Long roleId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", insertable = false, updatable = false)
     private Role role;
 
     @Column(name = "work_role_id")
-    private Integer workRoleId;
+    private Long workRoleId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "work_role_id", insertable = false, updatable = false)

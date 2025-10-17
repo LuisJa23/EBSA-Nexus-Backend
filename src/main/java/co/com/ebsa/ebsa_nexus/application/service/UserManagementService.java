@@ -1,18 +1,27 @@
 package co.com.ebsa.ebsa_nexus.application.service;
 
-import co.com.ebsa.ebsa_nexus.application.dto.request.CreateUserRequest;
-import co.com.ebsa.ebsa_nexus.application.dto.request.UpdateOwnProfileRequest;
-import co.com.ebsa.ebsa_nexus.application.dto.request.UpdateUserRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.ChangePasswordRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.CreateUserRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.UpdateOwnProfileRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.UpdateUserRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.response.UserResponse;
 import co.com.ebsa.ebsa_nexus.domain.entity.Role;
 import co.com.ebsa.ebsa_nexus.domain.entity.User;
 import co.com.ebsa.ebsa_nexus.domain.entity.WorkRole;
-import co.com.ebsa.ebsa_nexus.domain.exception.*;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.AuthenticationException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.DuplicateFieldException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.InvalidPasswordException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.InvalidWorkRoleException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.MultipleDuplicateFieldsException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.UnauthorizedOperationException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.UserAlreadyExistsException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.UserNotFoundException;
 import co.com.ebsa.ebsa_nexus.domain.repository.UserDomainRepository;
-import co.com.ebsa.ebsa_nexus.infrastructure.repository.RoleRepository;
-import co.com.ebsa.ebsa_nexus.infrastructure.repository.WorkRoleRepository;
+import co.com.ebsa.ebsa_nexus.infrastructure.persistence.jpa.repositories.RoleRepository;
+import co.com.ebsa.ebsa_nexus.infrastructure.persistence.jpa.repositories.WorkRoleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -109,7 +118,7 @@ public class UserManagementService {
      * Solo usuarios con rol ADMIN pueden actualizar usuarios.
      * Un admin no puede desactivarse a sí mismo.
      */
-    public UserResponse updateUser(Integer userId, UpdateUserRequest request, String currentUserEmail) {
+    public UserResponse updateUser(Long userId, UpdateUserRequest request, String currentUserEmail) {
         log.info("Updating user ID: {} by admin: {}", userId, currentUserEmail);
         
         // Validar que el usuario actual es admin
@@ -152,7 +161,7 @@ public class UserManagementService {
         // Validar WorkRole si se actualiza workRoleId o workType
         User.WorkType finalWorkType = request.workType() != null ? 
             request.workType() : existingUser.getWorkType();
-        Integer finalWorkRoleId = request.workRoleId() != null ? 
+        Long finalWorkRoleId = request.workRoleId() != null ? 
             request.workRoleId() : existingUser.getWorkRoleId();
         validateWorkRoleMatchesWorkType(finalWorkRoleId, finalWorkType);
         
@@ -172,7 +181,7 @@ public class UserManagementService {
      * Solo usuarios con rol ADMIN pueden desactivar usuarios.
      * Un admin no puede desactivarse a sí mismo.
      */
-    public void deactivateUser(Integer userId, String currentUserEmail) {
+    public void deactivateUser(Long userId, String currentUserEmail) {
         log.info("Deactivating user ID: {} by admin: {}", userId, currentUserEmail);
         
         // Validar que el usuario actual es admin
@@ -197,7 +206,7 @@ public class UserManagementService {
      * Solo usuarios con rol ADMIN pueden ver detalles de usuarios.
      */
     @Transactional(readOnly = true)
-    public UserResponse getUserById(Integer userId, String currentUserEmail) {
+    public UserResponse getUserById(Long userId, String currentUserEmail) {
         validateAdminRole(currentUserEmail);
         
         User user = userRepository.findById(userId)
@@ -340,7 +349,7 @@ public class UserManagementService {
      * Valida unicidad para actualizaciones de usuarios existentes.
      * Acumula TODOS los campos duplicados y los retorna en una sola excepción.
      */
-    private void validateUpdateUniqueness(Integer userId, String newEmail, String newUsername,
+    private void validateUpdateUniqueness(Long userId, String newEmail, String newUsername,
                                          String newDocumentNumber, String newPhone) {
         Map<String, String> duplicateFields = new HashMap<>();
         
@@ -379,7 +388,7 @@ public class UserManagementService {
      * - Trabajadores INTERNOS solo pueden tener roles INTERNOS
      * - Trabajadores EXTERNOS solo pueden tener roles EXTERNOS
      */
-    private void validateWorkRoleMatchesWorkType(Integer workRoleId, User.WorkType workType) {
+    private void validateWorkRoleMatchesWorkType(Long workRoleId, User.WorkType workType) {
         // Si alguno es null, no validar (campos opcionales)
         if (workRoleId == null || workType == null) {
             return;
@@ -410,7 +419,7 @@ public class UserManagementService {
      * @throws InvalidPasswordException si las contraseñas nuevas no coinciden
      * @throws UserNotFoundException si el usuario no existe
      */
-    public void changePassword(co.com.ebsa.ebsa_nexus.application.dto.request.ChangePasswordRequest request, 
+    public void changePassword(ChangePasswordRequest request, 
                                String authenticatedUserEmail) {
         log.info("User changing password: {}", authenticatedUserEmail);
         
@@ -438,6 +447,72 @@ public class UserManagementService {
         userRepository.save(user);
         
         log.info("Password changed successfully for user: {}", authenticatedUserEmail);
+    }
+    
+    /**
+     * Obtiene usuarios disponibles (sin cuadrilla activa) con paginación.
+     * Solo usuarios con rol ADMIN pueden ver esta información.
+     * 
+     * @param pageable Información de paginación y ordenamiento
+     * @param currentUserEmail Email del usuario autenticado (debe ser ADMIN)
+     * @return Página de usuarios disponibles (sin cuadrilla)
+     */
+    @Transactional(readOnly = true)
+    public Page<UserResponse> getAvailableUsers(Pageable pageable, String currentUserEmail) {
+        log.info("Getting available users (without active crew) with pagination requested by: {}", currentUserEmail);
+        
+        validateAdminRole(currentUserEmail);
+        
+        java.util.List<User> availableUsers = userRepository.findUsersWithoutActiveCrew();
+        
+        log.info("Found {} users without active crew", availableUsers.size());
+        
+        // Convertir lista a responses
+        java.util.List<UserResponse> availableUserResponses = availableUsers.stream()
+            .map(user -> {
+                Role role = roleRepository.findById(user.getRoleId()).orElse(null);
+                WorkRole workRole = user.getWorkRoleId() != null ? 
+                    workRoleRepository.findById(user.getWorkRoleId()).orElse(null) : null;
+                return mapToUserResponse(user, role, workRole);
+            })
+            .collect(java.util.stream.Collectors.toList());
+        
+        // Aplicar paginación manual
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), availableUserResponses.size());
+        
+        java.util.List<UserResponse> pageContent = availableUserResponses.subList(start, end);
+        
+        // Crear una nueva página con los usuarios filtrados
+        return new PageImpl<>(pageContent, pageable, availableUserResponses.size());
+    }
+
+    /**
+     * Obtiene todos los usuarios activos que NO están en ninguna cuadrilla activa.
+     * Útil para mostrar trabajadores disponibles al crear nuevas cuadrillas.
+     * Solo usuarios con rol ADMIN pueden acceder.
+     * 
+     * @param currentUserEmail Email del usuario autenticado (debe ser ADMIN)
+     * @return Lista de usuarios disponibles (sin cuadrilla)
+     */
+    @Transactional(readOnly = true)
+    public java.util.List<UserResponse> getUsersWithoutActiveCrew(String currentUserEmail) {
+        log.info("Getting available users (without active crew) requested by: {}", currentUserEmail);
+        
+        validateAdminRole(currentUserEmail);
+        
+        java.util.List<User> availableUsers = userRepository.findUsersWithoutActiveCrew();
+        
+        log.info("Found {} users without active crew", availableUsers.size());
+        
+        return availableUsers.stream()
+            .map(user -> {
+                Role role = roleRepository.findById(user.getRoleId()).orElse(null);
+                WorkRole workRole = user.getWorkRoleId() != null ? 
+                    workRoleRepository.findById(user.getWorkRoleId()).orElse(null) : null;
+                return mapToUserResponse(user, role, workRole);
+            })
+            .collect(java.util.stream.Collectors.toList());
     }
     
     /**

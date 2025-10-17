@@ -1,7 +1,14 @@
 package co.com.ebsa.ebsa_nexus.presentation.handler;
 
 import co.com.ebsa.ebsa_nexus.application.dto.response.ValidationErrorResponse;
-import co.com.ebsa.ebsa_nexus.domain.exception.*;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.AuthenticationException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.DuplicateFieldException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.InvalidPasswordException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.InvalidWorkRoleException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.MultipleDuplicateFieldsException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.UnauthorizedOperationException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.UserAlreadyExistsException;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

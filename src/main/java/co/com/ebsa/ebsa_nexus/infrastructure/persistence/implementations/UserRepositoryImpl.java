@@ -2,7 +2,7 @@ package co.com.ebsa.ebsa_nexus.infrastructure.persistence.implementations;
 
 import co.com.ebsa.ebsa_nexus.domain.entity.User;
 import co.com.ebsa.ebsa_nexus.domain.repository.UserDomainRepository;
-import co.com.ebsa.ebsa_nexus.infrastructure.repository.UserRepository;
+import co.com.ebsa.ebsa_nexus.infrastructure.persistence.jpa.repositories.UserRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +31,7 @@ public class UserRepositoryImpl implements UserDomainRepository {
     }
     
     @Override
-    public Optional<User> findById(Integer id) {
+    public Optional<User> findById(Long id) {
         return jpaUserRepository.findById(id);
     }
     
@@ -73,12 +73,12 @@ public class UserRepositoryImpl implements UserDomainRepository {
     }
     
     @Override
-    public boolean existsByEmailAndIdNot(String email, Integer id) {
+    public boolean existsByEmailAndIdNot(String email, Long id) {
         return jpaUserRepository.existsByEmailAndIdNot(email, id);
     }
     
     @Override
-    public boolean existsByUsernameAndIdNot(String username, Integer id) {
+    public boolean existsByUsernameAndIdNot(String username, Long id) {
         return jpaUserRepository.existsByUsernameAndIdNot(username, id);
     }
     
@@ -88,7 +88,7 @@ public class UserRepositoryImpl implements UserDomainRepository {
     }
     
     @Override
-    public boolean existsByDocumentNumberAndIdNot(String documentNumber, Integer id) {
+    public boolean existsByDocumentNumberAndIdNot(String documentNumber, Long id) {
         return jpaUserRepository.existsByDocumentNumberAndIdNot(documentNumber, id);
     }
     
@@ -98,8 +98,13 @@ public class UserRepositoryImpl implements UserDomainRepository {
     }
     
     @Override
-    public boolean existsByPhoneAndIdNot(String phone, Integer id) {
+    public boolean existsByPhoneAndIdNot(String phone, Long id) {
         return jpaUserRepository.existsByPhoneAndIdNot(phone, id);
+    }
+    
+    @Override
+    public List<User> findUsersWithoutActiveCrew() {
+        return jpaUserRepository.findUsersWithoutActiveCrew();
     }
     
     @Override
