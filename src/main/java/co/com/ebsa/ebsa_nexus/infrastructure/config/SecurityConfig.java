@@ -44,6 +44,8 @@ public class SecurityConfig {
                     "/actuator/**", 
                     "/health", 
                     "/error",
+                    "/api/public/**",
+                    "/areas",
                     "/api/work-roles",
                     "/api/work-roles/**" // Permitir acceso público a todos los endpoints de work-roles
                 ).permitAll()
