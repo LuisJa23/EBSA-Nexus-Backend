@@ -90,7 +90,7 @@ public class CrewMemberFactory {
             throw new IllegalArgumentException("Joined at date cannot be in the future");
         }
         
-        LocalDateTime now = LocalDateTime.now();
+       
         
         return CrewMember.builder()
                 .crewId(crewId)
