@@ -81,12 +81,7 @@ Dockerfile
 docker-compose.yml
 docker-compose.*.yml
 
-# Directorio Docker completo
-docker/
 
-# Scripts SQL originales
-physicalScheme.sql
-*.sql
 
 # Variables de entorno locales
 .env
