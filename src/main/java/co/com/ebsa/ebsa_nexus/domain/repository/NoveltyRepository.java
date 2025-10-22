@@ -1,0 +1,191 @@
+package co.com.ebsa.ebsa_nexus.domain.repository;
+
+import co.com.ebsa.ebsa_nexus.domain.entity.Novelty;
+import co.com.ebsa.ebsa_nexus.domain.enums.NoveltyStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Repositorio de dominio para la entidad Novelty.
+ * Define las operaciones de persistencia sin depender de tecnologías específicas.
+ * 
+ * <p>Esta interfaz pertenece a la capa de dominio y será implementada
+ * por la capa de infraestructura.</p>
+ * 
+ * @author EBSA Nexus Team
+ * @version 1.0
+ * @since 2025-10-21
+ */
+public interface NoveltyRepository {
+    
+    /**
+     * Guarda una novedad (crear o actualizar).
+     * 
+     * @param novelty Novedad a guardar
+     * @return Novedad guardada con ID asignado
+     * @throws IllegalArgumentException si novelty es null
+     */
+    Novelty save(Novelty novelty);
+    
+    /**
+     * Busca una novedad por su ID.
+     * 
+     * @param id ID de la novedad
+     * @return Optional con la novedad si existe
+     * @throws IllegalArgumentException si id es null
+     */
+    Optional<Novelty> findById(Long id);
+    
+    /**
+     * Busca una novedad por su UUID.
+     * 
+     * @param uuid UUID de la novedad
+     * @return Optional con la novedad si existe
+     * @throws IllegalArgumentException si uuid es null o vacío
+     */
+    Optional<Novelty> findByNoveltyUuid(String uuid);
+    
+    /**
+     * Obtiene todas las novedades con paginación.
+     * 
+     * @param pageable Configuración de paginación
+     * @return Página de novedades
+     */
+    Page<Novelty> findAll(Pageable pageable);
+    
+    /**
+     * Obtiene novedades filtradas por estado con paginación.
+     * 
+     * @param status Estado a filtrar
+     * @param pageable Configuración de paginación
+     * @return Página de novedades con ese estado
+     */
+    Page<Novelty> findByStatus(NoveltyStatus status, Pageable pageable);
+    
+    /**
+     * Obtiene novedades filtradas por área con paginación.
+     * 
+     * @param areaId ID del área
+     * @param pageable Configuración de paginación
+     * @return Página de novedades de esa área
+     */
+    Page<Novelty> findByAreaId(Long areaId, Pageable pageable);
+    
+    /**
+     * Obtiene novedades creadas por un usuario específico.
+     * 
+     * @param userId ID del usuario creador
+     * @param pageable Configuración de paginación
+     * @return Página de novedades creadas por ese usuario
+     */
+    Page<Novelty> findByCreatedById(Long userId, Pageable pageable);
+    
+    /**
+     * Obtiene novedades asignadas a las cuadrillas donde el usuario es miembro.
+     * 
+     * @param userId ID del usuario
+     * @param pageable Configuración de paginación
+     * @return Página de novedades asignadas a las cuadrillas del usuario
+     */
+    Page<Novelty> findNoveltiesAssignedToUser(Long userId, Pageable pageable);
+    
+    /**
+     * Obtiene novedades filtradas por múltiples criterios.
+     * 
+     * @param status Estado (opcional)
+     * @param reason Razón (opcional)
+     * @param crewId ID de la cuadrilla (opcional)
+     * @param reportedByUserId ID del usuario que reportó (opcional)
+     * @param startDate Fecha inicio (opcional)
+     * @param endDate Fecha fin (opcional)
+     * @param pageable Configuración de paginación
+     * @return Página de novedades que cumplen los criterios
+     */
+    Page<Novelty> findByFilters(
+        NoveltyStatus status,
+        String reason,
+        Long crewId,
+        Long reportedByUserId,
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        Pageable pageable
+    );
+    
+    /**
+     * Obtiene novedades por cuadrilla ordenadas por fecha de reporte.
+     * 
+     * @param crewId ID de la cuadrilla
+     * @return Lista de novedades de la cuadrilla
+     */
+    List<Novelty> findByCrewIdOrderByReportedAtDesc(Long crewId);
+    
+    /**
+     * Obtiene novedades por estado ordenadas por fecha de reporte.
+     * 
+     * @param status Estado
+     * @return Lista de novedades con ese estado
+     */
+    List<Novelty> findByStatusOrderByReportedAtDesc(NoveltyStatus status);
+    
+    /**
+     * Obtiene novedades reportadas en un rango de fechas.
+     * 
+     * @param startDateTime Fecha/hora inicio
+     * @param endDateTime Fecha/hora fin
+     * @return Lista de novedades en el rango
+     */
+    List<Novelty> findByReportedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
+    
+    /**
+     * Obtiene novedades de una cuadrilla en un rango de fechas.
+     * 
+     * @param crewId ID de la cuadrilla
+     * @param startDateTime Fecha/hora inicio
+     * @param endDateTime Fecha/hora fin
+     * @return Lista de novedades de la cuadrilla en el rango
+     */
+    List<Novelty> findByCrewIdAndReportedAtBetween(Long crewId, LocalDateTime startDateTime, LocalDateTime endDateTime);
+    
+    /**
+     * Obtiene novedades creadas sin conexión (offline).
+     * 
+     * @return Lista de novedades offline
+     */
+    List<Novelty> findOfflineNovelties();
+    
+    /**
+     * Cuenta novedades por estado.
+     * 
+     * @param status Estado a contar
+     * @return Número de novedades en ese estado
+     */
+    long countByStatus(NoveltyStatus status);
+    
+    /**
+     * Cuenta novedades por área.
+     * 
+     * @param areaId ID del área
+     * @return Número de novedades de esa área
+     */
+    long countByAreaId(Long areaId);
+    
+    /**
+     * Verifica si existe una novedad con el UUID dado.
+     * 
+     * @param uuid UUID de la novedad
+     * @return true si existe, false en caso contrario
+     */
+    boolean existsByNoveltyUuid(String uuid);
+    
+    /**
+     * Verifica si existe una novedad con el ID dado.
+     * 
+     * @param id ID de la novedad
+     * @return true si existe, false en caso contrario
+     */
+    boolean existsById(Long id);
+}

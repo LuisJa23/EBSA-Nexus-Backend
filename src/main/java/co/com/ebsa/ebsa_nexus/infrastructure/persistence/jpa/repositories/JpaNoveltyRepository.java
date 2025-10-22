@@ -1,0 +1,73 @@
+package co.com.ebsa.ebsa_nexus.infrastructure.persistence.jpa.repositories;
+
+import co.com.ebsa.ebsa_nexus.domain.entity.Novelty;
+import co.com.ebsa.ebsa_nexus.domain.enums.NoveltyStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * Repositorio Spring Data JPA para Novelty.
+ * Proporciona operaciones CRUD y queries personalizados.
+ * 
+ * @author EBSA Nexus Team
+ * @version 1.0
+ * @since 2025-10-21
+ */
+@Repository
+public interface JpaNoveltyRepository extends JpaRepository<Novelty, Long> {
+    
+    /**
+     * Busca novedades por cuadrilla ordenadas por fecha de reporte.
+     */
+    List<Novelty> findByCrewIdOrderByReportedAtDesc(Long crewId);
+    
+    /**
+     * Busca novedades por estado ordenadas por fecha de reporte.
+     */
+    List<Novelty> findByStatusOrderByReportedAtDesc(NoveltyStatus status);
+    
+    /**
+     * Busca novedades reportadas en un rango de fechas.
+     */
+    List<Novelty> findByReportedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
+    
+    /**
+     * Busca novedades de una cuadrilla en un rango de fechas.
+     */
+    List<Novelty> findByCrewIdAndReportedAtBetween(Long crewId, LocalDateTime startDateTime, LocalDateTime endDateTime);
+    
+    /**
+     * Cuenta novedades por estado.
+     */
+    long countByStatus(NoveltyStatus status);
+    
+    /**
+     * Búsqueda con filtros múltiples.
+     */
+    @Query("""
+        SELECT n FROM Novelty n 
+        WHERE (:status IS NULL OR n.status = :status)
+        AND (:reason IS NULL OR n.reason = :reason)
+        AND (:crewId IS NULL OR n.crewId = :crewId)
+        AND (:reportedByUserId IS NULL OR n.reportedByUserId = :reportedByUserId)
+        AND (:startDate IS NULL OR n.reportedAt >= :startDate)
+        AND (:endDate IS NULL OR n.reportedAt <= :endDate)
+        ORDER BY n.reportedAt DESC
+        """)
+    Page<Novelty> findByFilters(
+        @Param("status") NoveltyStatus status,
+        @Param("reason") String reason,
+        @Param("crewId") Long crewId,
+        @Param("reportedByUserId") Long reportedByUserId,
+        @Param("startDate") LocalDateTime startDate,
+        @Param("endDate") LocalDateTime endDate,
+        Pageable pageable
+    );
+}

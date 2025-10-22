@@ -112,41 +112,43 @@ CREATE TABLE IF NOT EXISTS `Location` (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `novelties` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `novelty_uuid` VARCHAR(45) NULL,
+  `novelty_uuid` VARCHAR(45) NOT NULL,
   `area_id` BIGINT UNSIGNED NOT NULL,
-  `status_id` ENUM('Por_asignar', 'En_curso', 'completado', 'cerrado') NOT NULL,
-  `reported_by` BIGINT UNSIGNED NOT NULL,
-  `title` VARCHAR(100) NULL,
-  `description` TEXT NULL,
-  `severity` ENUM('minor', 'major', 'critical') NOT NULL DEFAULT 'minor',
-  `priority` ENUM('low', 'medium', 'high', 'critical') NOT NULL DEFAULT 'medium',
-  `account_number` VARCHAR(45) NULL,
-  `meter_number` VARCHAR(45) NULL,
-  `active_reading` VARCHAR(45) NULL,
-  `reactive_reading` VARCHAR(45) NULL,
-  `town` VARCHAR(45) NULL,
-  `is_offline` TINYINT NULL,
-  `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-  `acknowledged_at` DATETIME NULL,
+  `status` ENUM('CREATED', 'IN_PROGRESS', 'COMPLETED', 'CLOSED', 'CANCELLED') NOT NULL DEFAULT 'CREATED',
+  `reason` ENUM('READING_ERROR', 'DATA_UPDATE', 'OTHER') NOT NULL,
+  `created_by` BIGINT UNSIGNED NOT NULL,
+  `description` TEXT NOT NULL,
+  `account_number` VARCHAR(50) NOT NULL,
+  `meter_number` VARCHAR(50) NOT NULL,
+  `active_reading` DECIMAL(10,2) NOT NULL,
+  `reactive_reading` DECIMAL(10,2) NOT NULL,
+  `municipality` VARCHAR(100) NOT NULL,
+  `address` VARCHAR(255) NULL,
+  `observations` TEXT NULL,
+  `is_offline` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `completed_at` DATETIME NULL,
   `closed_at` DATETIME NULL,
-  `id_location` BIGINT UNSIGNED NOT NULL,
+  `cancelled_at` DATETIME NULL,
   PRIMARY KEY (`id`),
-  INDEX `fk_novelties_area_idx` (`area_id` ASC),
-  INDEX `fk_novelties_users_idx` (`reported_by` ASC),
-  INDEX `fk_novelties_location_idx` (`id_location` ASC),
+  UNIQUE INDEX `novelty_uuid_UNIQUE` (`novelty_uuid` ASC),
+  INDEX `idx_novelties_area` (`area_id` ASC),
+  INDEX `idx_novelties_status` (`status` ASC),
+  INDEX `idx_novelties_reason` (`reason` ASC),
+  INDEX `idx_novelties_created_by` (`created_by` ASC),
+  INDEX `idx_novelties_account_number` (`account_number` ASC),
+  INDEX `idx_novelties_meter_number` (`meter_number` ASC),
+  INDEX `idx_novelties_municipality` (`municipality` ASC),
+  INDEX `idx_novelties_created_at` (`created_at` ASC),
   CONSTRAINT `fk_novelties_area`
     FOREIGN KEY (`area_id`)
     REFERENCES `areas` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_novelties_users`
-    FOREIGN KEY (`reported_by`)
+  CONSTRAINT `fk_novelties_created_by`
+    FOREIGN KEY (`created_by`)
     REFERENCES `users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_novelties_location`
-    FOREIGN KEY (`id_location`)
-    REFERENCES `Location` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 ) ENGINE = InnoDB;
@@ -236,23 +238,20 @@ CREATE TABLE IF NOT EXISTS `novelty_assignments` (
   `novelty_id` BIGINT UNSIGNED NOT NULL,
   `crew_id` BIGINT UNSIGNED NOT NULL,
   `assigned_by` BIGINT UNSIGNED NOT NULL,
-  `status` VARCHAR(20) NOT NULL DEFAULT 'ASIGNADO',
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
   `notes` TEXT NULL,
-  `assigned_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-  `started_at` DATETIME NULL,
-  `completed_at` DATETIME NULL,
-  `cancelled_at` DATETIME NULL,
-  `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `assigned_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX `idx_assignments_novelty_id` (`novelty_id` ASC),
   INDEX `idx_assignments_crew_id` (`crew_id` ASC),
-  INDEX `idx_assignments_status` (`status` ASC),
+  INDEX `idx_assignments_is_active` (`is_active` ASC),
   INDEX `idx_assignments_assigned_by` (`assigned_by` ASC),
   CONSTRAINT `fk_assignments_novelty`
     FOREIGN KEY (`novelty_id`)
     REFERENCES `novelties` (`id`)
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_assignments_crew`
     FOREIGN KEY (`crew_id`)
@@ -261,6 +260,56 @@ CREATE TABLE IF NOT EXISTS `novelty_assignments` (
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_assignments_assigned_by`
     FOREIGN KEY (`assigned_by`)
+    REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- Table: novelty_images
+-- =====================================================
+CREATE TABLE IF NOT EXISTS `novelty_images` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `novelty_id` BIGINT UNSIGNED NOT NULL,
+  `image_url` VARCHAR(500) NOT NULL,
+  `uploaded_by` BIGINT UNSIGNED NOT NULL,
+  `uploaded_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_novelty_images_novelty_id` (`novelty_id` ASC),
+  INDEX `idx_novelty_images_uploaded_by` (`uploaded_by` ASC),
+  CONSTRAINT `fk_novelty_images_novelty`
+    FOREIGN KEY (`novelty_id`)
+    REFERENCES `novelties` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_novelty_images_uploaded_by`
+    FOREIGN KEY (`uploaded_by`)
+    REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- Table: novelty_reports
+-- =====================================================
+CREATE TABLE IF NOT EXISTS `novelty_reports` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `novelty_id` BIGINT UNSIGNED NOT NULL UNIQUE,
+  `generated_by` BIGINT UNSIGNED NOT NULL,
+  `report_content` TEXT NOT NULL,
+  `resolution_time_hours` INT NULL,
+  `observations` TEXT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `novelty_id_UNIQUE` (`novelty_id` ASC),
+  INDEX `idx_novelty_reports_generated_by` (`generated_by` ASC),
+  CONSTRAINT `fk_novelty_reports_novelty`
+    FOREIGN KEY (`novelty_id`)
+    REFERENCES `novelties` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_novelty_reports_generated_by`
+    FOREIGN KEY (`generated_by`)
     REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
@@ -292,16 +341,26 @@ CREATE TABLE IF NOT EXISTS `reports` (
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` BIGINT UNSIGNED NOT NULL,
-  `title` VARCHAR(100) NULL,
-  `message` TEXT NULL,
-  `read` TINYINT(1) NOT NULL DEFAULT 0,
-  `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `novelty_id` BIGINT UNSIGNED NULL,
+  `type` VARCHAR(50) NOT NULL,
+  `title` VARCHAR(200) NOT NULL,
+  `message` TEXT NOT NULL,
+  `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_notifications_users_idx` (`user_id` ASC),
+  INDEX `idx_notifications_user_id` (`user_id` ASC),
+  INDEX `idx_notifications_is_read` (`is_read` ASC),
+  INDEX `idx_notifications_created_at` (`created_at` ASC),
+  INDEX `idx_notifications_novelty_id` (`novelty_id` ASC),
   CONSTRAINT `fk_notifications_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
     ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_notifications_novelty`
+    FOREIGN KEY (`novelty_id`)
+    REFERENCES `novelties` (`id`)
+    ON DELETE SET NULL
     ON UPDATE NO ACTION
 ) ENGINE = InnoDB;
 
