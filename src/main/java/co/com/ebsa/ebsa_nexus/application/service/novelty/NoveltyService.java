@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,31 +47,60 @@ public class NoveltyService {
     }
 
     /**
-     * Create a new novelty from supervisor report
-     * The novelty is created in REPORTED status without crew assignment
+     * Create a new novelty from meter reading form
+     * The novelty is created in CREADA status without crew assignment
      */
-    public NoveltyResponse createNovelty(CreateNoveltyRequest request, Long reportedByUserId) {
-        // Validate supervisor can report novelty
-        validationService.validateSupervisorCanReport(reportedByUserId);
+    public NoveltyResponse createNovelty(CreateNoveltyRequest request, Long createdByUserId) {
+        // Validate user can create novelty
+        validationService.validateSupervisorCanReport(createdByUserId);
 
-        // Create novelty entity in REPORTED status (no crew assigned yet)
+        // Create novelty entity in CREADA status (no crew assigned yet)
         Novelty novelty = new Novelty();
+        novelty.setAreaId(request.getAreaId());
         novelty.setReason(request.getReason());
+        novelty.setAccountNumber(request.getAccountNumber());
+        novelty.setMeterNumber(request.getMeterNumber());
+        novelty.setActiveReading(request.getActiveReading());
+        novelty.setReactiveReading(request.getReactiveReading());
+        novelty.setMunicipality(request.getMunicipality());
+        novelty.setAddress(request.getAddress());
+        
+        // Build location from municipality and address
+        String location = request.getMunicipality();
+        if (request.getAddress() != null && !request.getAddress().isBlank()) {
+            location = location + ", " + request.getAddress();
+        }
+        novelty.setLocation(location);
+        
         novelty.setDescription(request.getDescription());
-        novelty.setLocation(request.getLocation());
-        novelty.setReportedByUserId(reportedByUserId);
-        novelty.setStatus(NoveltyStatus.REPORTED);
-        novelty.setReportedAt(LocalDateTime.now());
+        novelty.setObservations(request.getObservations());
+        novelty.setCreatedBy(createdByUserId);
+        novelty.setCreatedByLegacy(createdByUserId); // Campo legacy de BD
+        novelty.setStatus(NoveltyStatus.CREADA);
         novelty.setCreatedAt(LocalDateTime.now());
         novelty.setUpdatedAt(LocalDateTime.now());
 
         // Save novelty
         Novelty savedNovelty = noveltyRepository.save(novelty);
 
+        // Save images
+        List<NoveltyImage> images = new ArrayList<>();
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            for (String imageUrl : request.getImageUrls()) {
+                NoveltyImage image = new NoveltyImage();
+                image.setNoveltyId(savedNovelty.getId());
+                image.setImageUrl(imageUrl);
+                image.setUploadedByUserId(createdByUserId);
+                image.setUploadedAt(LocalDateTime.now());
+                images.add(image);
+            }
+            noveltyImageRepository.saveAll(images);
+        }
+
         // Send notification to admin
         notificationService.notifyNewNovelty(savedNovelty);
 
-        return mapToResponse(savedNovelty, Collections.emptyList(), null);
+        return mapToResponse(savedNovelty, images, null);
     }
 
     /**
@@ -136,15 +164,18 @@ public class NoveltyService {
         NoveltyAssignment assignment = new NoveltyAssignment();
         assignment.setNoveltyId(noveltyId);
         assignment.setAssignedCrewId(request.getAssignedCrewId());
+        assignment.setCrewId(request.getAssignedCrewId()); // Campo duplicado requerido por la DB
         assignment.setAssignedByUserId(assignedByUserId);
+        assignment.setAssignedBy(assignedByUserId); // Campo adicional requerido por la DB
         assignment.setInstructions(request.getInstructions());
         assignment.setPriority(request.getPriority());
         assignment.setEstimatedResolutionDate(request.getEstimatedResolutionDate());
         assignment.setAssignedAt(LocalDateTime.now());
+        assignment.setStatus("ACTIVE"); // Estado inicial
         noveltyAssignmentRepository.save(assignment);
 
-        // Update novelty status
-        novelty.setStatus(NoveltyStatus.ASSIGNED);
+        // Update novelty status using entity method
+        novelty.assignCrew(request.getAssignedCrewId());
         novelty.setUpdatedAt(LocalDateTime.now());
         noveltyRepository.save(novelty);
 
@@ -158,7 +189,8 @@ public class NoveltyService {
     }
 
     /**
-     * Mark novelty as in progress
+     * Mark novelty as in progress (no longer used - crew assignment transitions to EN_CURSO)
+     * Keeping for backward compatibility
      */
     public NoveltyResponse startProgress(Long noveltyId, Long userId) {
         // Find novelty
@@ -168,13 +200,11 @@ public class NoveltyService {
         // Validate user is assigned crew
         validationService.validateUserIsAssignedCrew(userId, novelty);
 
-        // Validate status transition
-        if (novelty.getStatus() != NoveltyStatus.ASSIGNED) {
-            throw new NoveltyOperationException("Novelty must be in ASSIGNED status to start progress");
+        // Validate status transition - should be EN_CURSO after crew assignment
+        if (novelty.getStatus() != NoveltyStatus.EN_CURSO) {
+            throw new NoveltyOperationException("Novelty is already in progress or completed");
         }
 
-        // Update status
-        novelty.setStatus(NoveltyStatus.IN_PROGRESS);
         novelty.setUpdatedAt(LocalDateTime.now());
         noveltyRepository.save(novelty);
 
@@ -189,26 +219,26 @@ public class NoveltyService {
     }
 
     /**
-     * Mark novelty as resolved with completion details
+     * Mark novelty as completed with completion details
      */
-    public NoveltyResponse resolveNovelty(Long noveltyId, String resolutionNotes, Long resolvedByUserId) {
+    public NoveltyResponse resolveNovelty(Long noveltyId, String completionNotes, Long completedByUserId) {
         // Find novelty
         Novelty novelty = noveltyRepository.findById(noveltyId)
                 .orElseThrow(() -> new NoveltyOperationException("Novelty not found with id: " + noveltyId));
 
-        // Validate user can resolve
-        validationService.validateCanResolve(resolvedByUserId, novelty);
+        // Validate user can complete
+        validationService.validateCanResolve(completedByUserId, novelty);
 
-        // Validate status allows resolution
-        if (novelty.getStatus() != NoveltyStatus.IN_PROGRESS && novelty.getStatus() != NoveltyStatus.ASSIGNED) {
-            throw new NoveltyOperationException("Novelty must be in IN_PROGRESS or ASSIGNED status to be resolved");
+        // Validate status allows completion
+        if (novelty.getStatus() != NoveltyStatus.EN_CURSO) {
+            throw new NoveltyOperationException("Novelty must be in EN_CURSO status to be completed");
         }
 
-        // Update novelty
-        novelty.setStatus(NoveltyStatus.RESOLVED);
-        novelty.setResolutionNotes(resolutionNotes);
-        novelty.setResolvedByUserId(resolvedByUserId);
-        novelty.setResolvedAt(LocalDateTime.now());
+        // Update novelty using entity method
+        novelty.markAsCompleted();
+        if (completionNotes != null) {
+            novelty.setObservations(novelty.getObservations() + "\n\nNotas de completación: " + completionNotes);
+        }
         novelty.setUpdatedAt(LocalDateTime.now());
         noveltyRepository.save(novelty);
 
@@ -223,7 +253,7 @@ public class NoveltyService {
     }
 
     /**
-     * Verify novelty resolution (Admin only)
+     * Close novelty after completion verification (Admin only)
      */
     public NoveltyResponse verifyResolution(Long noveltyId, boolean approved, String verificationNotes, Long verifiedByUserId) {
         // Find novelty
@@ -234,20 +264,22 @@ public class NoveltyService {
         validationService.validateAdminCanVerify(verifiedByUserId);
 
         // Validate status
-        if (novelty.getStatus() != NoveltyStatus.RESOLVED) {
-            throw new NoveltyOperationException("Only RESOLVED novelties can be verified");
+        if (novelty.getStatus() != NoveltyStatus.COMPLETADA) {
+            throw new NoveltyOperationException("Only COMPLETADA novelties can be closed");
         }
 
         // Update status based on approval
         if (approved) {
-            novelty.setStatus(NoveltyStatus.CLOSED);
+            novelty.close();
         } else {
-            novelty.setStatus(NoveltyStatus.IN_PROGRESS); // Rejected, back to in progress
+            // Rejected, back to EN_CURSO
+            novelty.setStatus(NoveltyStatus.EN_CURSO);
+            novelty.setCompletedAt(null); // Reset completion timestamp
         }
 
-        novelty.setVerifiedByUserId(verifiedByUserId);
-        novelty.setVerificationNotes(verificationNotes);
-        novelty.setVerifiedAt(LocalDateTime.now());
+        if (verificationNotes != null) {
+            novelty.setObservations(novelty.getObservations() + "\n\nNotas de verificación: " + verificationNotes);
+        }
         novelty.setUpdatedAt(LocalDateTime.now());
         noveltyRepository.save(novelty);
 
@@ -264,7 +296,7 @@ public class NoveltyService {
     }
 
     /**
-     * Cancel novelty (Admin only)
+     * Cancel novelty (Admin only - only from CREADA status)
      */
     public NoveltyResponse cancelNovelty(Long noveltyId, String cancellationReason, Long cancelledByUserId) {
         // Find novelty
@@ -274,14 +306,16 @@ public class NoveltyService {
         // Validate admin can cancel
         validationService.validateAdminCanCancel(cancelledByUserId);
 
-        // Validate status allows cancellation
-        if (novelty.getStatus() == NoveltyStatus.CLOSED) {
-            throw new NoveltyOperationException("Cannot cancel a CLOSED novelty");
+        // Validate status allows cancellation (only CREADA or EN_CURSO)
+        if (novelty.getStatus() == NoveltyStatus.CERRADA || novelty.getStatus() == NoveltyStatus.COMPLETADA) {
+            throw new NoveltyOperationException("Cannot cancel a CERRADA or COMPLETADA novelty");
         }
 
-        // Update status
-        novelty.setStatus(NoveltyStatus.CANCELLED);
-        novelty.setCancellationReason(cancellationReason);
+        // Update status using entity method
+        novelty.cancel();
+        if (cancellationReason != null) {
+            novelty.setObservations(novelty.getObservations() + "\n\nMotivo de cancelación: " + cancellationReason);
+        }
         novelty.setUpdatedAt(LocalDateTime.now());
         noveltyRepository.save(novelty);
 
@@ -319,7 +353,7 @@ public class NoveltyService {
         Pageable pageable = PageRequest.of(
                 request.getPage(),
                 request.getSize(),
-                Sort.by(Sort.Direction.DESC, "reportedAt")
+                Sort.by(Sort.Direction.DESC, "createdAt")
         );
 
         // Convert status string to enum if present
@@ -363,7 +397,7 @@ public class NoveltyService {
      */
     @Transactional(readOnly = true)
     public List<NoveltyResponse> getNoveltyByCrew(Long crewId) {
-        List<Novelty> novelties = noveltyRepository.findByCrewIdOrderByReportedAtDesc(crewId);
+        List<Novelty> novelties = noveltyRepository.findByCrewIdOrderByCreatedAtDesc(crewId);
         return novelties.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -374,7 +408,7 @@ public class NoveltyService {
      */
     @Transactional(readOnly = true)
     public List<NoveltyResponse> getNoveltyByStatus(NoveltyStatus status) {
-        List<Novelty> novelties = noveltyRepository.findByStatusOrderByReportedAtDesc(status);
+        List<Novelty> novelties = noveltyRepository.findByStatusOrderByCreatedAtDesc(status);
         return novelties.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -385,15 +419,24 @@ public class NoveltyService {
     private NoveltyResponse mapToResponse(Novelty novelty, List<NoveltyImage> images, NoveltyAssignment assignment) {
         NoveltyResponse response = new NoveltyResponse();
         response.setId(novelty.getId());
-        response.setCrewId(novelty.getCrewId());
+        response.setAreaId(novelty.getAreaId());
         response.setReason(novelty.getReason());
+        response.setAccountNumber(novelty.getAccountNumber());
+        response.setMeterNumber(novelty.getMeterNumber());
+        response.setActiveReading(novelty.getActiveReading());
+        response.setReactiveReading(novelty.getReactiveReading());
+        response.setMunicipality(novelty.getMunicipality());
+        response.setAddress(novelty.getAddress());
         response.setDescription(novelty.getDescription());
-        response.setLocation(novelty.getLocation());
+        response.setObservations(novelty.getObservations());
         response.setStatus(novelty.getStatus());
-        response.setReportedByUserId(novelty.getReportedByUserId());
-        response.setReportedAt(novelty.getReportedAt());
-        response.setResolvedAt(novelty.getResolvedAt());
+        response.setCreatedBy(novelty.getCreatedBy());
+        response.setCrewId(novelty.getCrewId());
         response.setCreatedAt(novelty.getCreatedAt());
+        response.setUpdatedAt(novelty.getUpdatedAt());
+        response.setCompletedAt(novelty.getCompletedAt());
+        response.setClosedAt(novelty.getClosedAt());
+        response.setCancelledAt(novelty.getCancelledAt());
         response.setImageCount(images.size());
         response.setHasAssignment(assignment != null);
         return response;
@@ -408,22 +451,24 @@ public class NoveltyService {
     private NoveltyDetailResponse mapToDetailResponse(Novelty novelty) {
         NoveltyDetailResponse response = new NoveltyDetailResponse();
         response.setId(novelty.getId());
-        response.setCrewId(novelty.getCrewId());
+        response.setAreaId(novelty.getAreaId());
         response.setReason(novelty.getReason());
+        response.setAccountNumber(novelty.getAccountNumber());
+        response.setMeterNumber(novelty.getMeterNumber());
+        response.setActiveReading(novelty.getActiveReading());
+        response.setReactiveReading(novelty.getReactiveReading());
+        response.setMunicipality(novelty.getMunicipality());
+        response.setAddress(novelty.getAddress());
         response.setDescription(novelty.getDescription());
-        response.setLocation(novelty.getLocation());
+        response.setObservations(novelty.getObservations());
         response.setStatus(novelty.getStatus());
-        response.setReportedByUserId(novelty.getReportedByUserId());
-        response.setReportedAt(novelty.getReportedAt());
-        response.setResolvedAt(novelty.getResolvedAt());
-        response.setResolvedByUserId(novelty.getResolvedByUserId());
-        response.setResolutionNotes(novelty.getResolutionNotes());
-        response.setVerifiedByUserId(novelty.getVerifiedByUserId());
-        response.setVerificationNotes(novelty.getVerificationNotes());
-        response.setVerifiedAt(novelty.getVerifiedAt());
-        response.setCancellationReason(novelty.getCancellationReason());
+        response.setCreatedBy(novelty.getCreatedBy());
+        response.setCrewId(novelty.getCrewId());
         response.setCreatedAt(novelty.getCreatedAt());
         response.setUpdatedAt(novelty.getUpdatedAt());
+        response.setCompletedAt(novelty.getCompletedAt());
+        response.setClosedAt(novelty.getClosedAt());
+        response.setCancelledAt(novelty.getCancelledAt());
 
         // Load images
         List<NoveltyImage> images = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(novelty.getId());

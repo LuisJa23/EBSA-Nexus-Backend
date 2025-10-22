@@ -24,24 +24,24 @@ import java.util.List;
 public interface JpaNoveltyRepository extends JpaRepository<Novelty, Long> {
     
     /**
-     * Busca novedades por cuadrilla ordenadas por fecha de reporte.
+     * Busca novedades por cuadrilla ordenadas por fecha de creación.
      */
-    List<Novelty> findByCrewIdOrderByReportedAtDesc(Long crewId);
+    List<Novelty> findByCrewIdOrderByCreatedAtDesc(Long crewId);
     
     /**
-     * Busca novedades por estado ordenadas por fecha de reporte.
+     * Busca novedades por estado ordenadas por fecha de creación.
      */
-    List<Novelty> findByStatusOrderByReportedAtDesc(NoveltyStatus status);
+    List<Novelty> findByStatusOrderByCreatedAtDesc(NoveltyStatus status);
     
     /**
-     * Busca novedades reportadas en un rango de fechas.
+     * Busca novedades creadas en un rango de fechas.
      */
-    List<Novelty> findByReportedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<Novelty> findByCreatedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
     
     /**
      * Busca novedades de una cuadrilla en un rango de fechas.
      */
-    List<Novelty> findByCrewIdAndReportedAtBetween(Long crewId, LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<Novelty> findByCrewIdAndCreatedAtBetween(Long crewId, LocalDateTime startDateTime, LocalDateTime endDateTime);
     
     /**
      * Cuenta novedades por estado.
@@ -56,10 +56,10 @@ public interface JpaNoveltyRepository extends JpaRepository<Novelty, Long> {
         WHERE (:status IS NULL OR n.status = :status)
         AND (:reason IS NULL OR n.reason = :reason)
         AND (:crewId IS NULL OR n.crewId = :crewId)
-        AND (:reportedByUserId IS NULL OR n.reportedByUserId = :reportedByUserId)
-        AND (:startDate IS NULL OR n.reportedAt >= :startDate)
-        AND (:endDate IS NULL OR n.reportedAt <= :endDate)
-        ORDER BY n.reportedAt DESC
+        AND (:reportedByUserId IS NULL OR n.createdBy = :reportedByUserId)
+        AND (:startDate IS NULL OR n.createdAt >= :startDate)
+        AND (:endDate IS NULL OR n.createdAt <= :endDate)
+        ORDER BY n.createdAt DESC
         """)
     Page<Novelty> findByFilters(
         @Param("status") NoveltyStatus status,
@@ -80,5 +80,5 @@ public interface JpaNoveltyRepository extends JpaRepository<Novelty, Long> {
     /**
      * Busca novedades creadas por un usuario con paginación.
      */
-    Page<Novelty> findByReportedByUserIdOrderByReportedAtDesc(Long reportedByUserId, Pageable pageable);
+    Page<Novelty> findByCreatedByOrderByCreatedAtDesc(Long createdBy, Pageable pageable);
 }

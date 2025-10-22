@@ -112,46 +112,44 @@ CREATE TABLE IF NOT EXISTS `Location` (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `novelties` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `crew_id` BIGINT UNSIGNED NULL,
-  `status` VARCHAR(20) NOT NULL DEFAULT 'REPORTED',
-  `reason` VARCHAR(50) NOT NULL,
+  `area_id` BIGINT UNSIGNED NOT NULL,
+  `reason` ENUM('ERROR_LECTURA', 'ACTUALIZACION_DATOS', 'OTROS') NOT NULL,
+  `account_number` VARCHAR(50) NOT NULL,
+  `meter_number` VARCHAR(50) NOT NULL,
+  `active_reading` DECIMAL(10,2) NOT NULL,
+  `reactive_reading` DECIMAL(10,2) NOT NULL,
+  `municipality` VARCHAR(100) NOT NULL,
+  `address` VARCHAR(255) NULL,
   `description` TEXT NOT NULL,
-  `location` VARCHAR(255) NOT NULL,
-  `reported_by_user_id` BIGINT UNSIGNED NOT NULL,
-  `reported_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `resolved_by_user_id` BIGINT UNSIGNED NULL,
-  `resolved_at` DATETIME NULL,
-  `resolution_notes` TEXT NULL,
-  `verified_by_user_id` BIGINT UNSIGNED NULL,
-  `verified_at` DATETIME NULL,
-  `verification_notes` TEXT NULL,
-  `cancellation_reason` TEXT NULL,
+  `observations` TEXT NULL,
+  `status` ENUM('CREADA', 'EN_CURSO', 'COMPLETADA', 'CERRADA', 'CANCELADA') NOT NULL DEFAULT 'CREADA',
+  `created_by` BIGINT UNSIGNED NOT NULL,
+  `crew_id` BIGINT UNSIGNED NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `completed_at` DATETIME NULL,
+  `closed_at` DATETIME NULL,
+  `cancelled_at` DATETIME NULL,
   PRIMARY KEY (`id`),
   INDEX `idx_novelties_status` (`status` ASC),
-  INDEX `idx_novelties_crew_id` (`crew_id` ASC),
-  INDEX `idx_novelties_reason` (`reason` ASC),
-  INDEX `idx_novelties_reported_by` (`reported_by_user_id` ASC),
-  INDEX `idx_novelties_reported_at` (`reported_at` ASC),
+  INDEX `idx_novelties_area_id` (`area_id` ASC),
+  INDEX `idx_novelties_account` (`account_number` ASC),
+  INDEX `idx_novelties_meter` (`meter_number` ASC),
+  INDEX `idx_novelties_municipality` (`municipality` ASC),
+  INDEX `idx_novelties_created_by` (`created_by` ASC),
+  CONSTRAINT `fk_novelties_area`
+    FOREIGN KEY (`area_id`)
+    REFERENCES `areas` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_novelties_created_by`
+    FOREIGN KEY (`created_by`)
+    REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
   CONSTRAINT `fk_novelties_crew`
     FOREIGN KEY (`crew_id`)
     REFERENCES `crews` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_novelties_reported_by`
-    FOREIGN KEY (`reported_by_user_id`)
-    REFERENCES `users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_novelties_resolved_by`
-    FOREIGN KEY (`resolved_by_user_id`)
-    REFERENCES `users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_novelties_verified_by`
-    FOREIGN KEY (`verified_by_user_id`)
-    REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 ) ENGINE = InnoDB;

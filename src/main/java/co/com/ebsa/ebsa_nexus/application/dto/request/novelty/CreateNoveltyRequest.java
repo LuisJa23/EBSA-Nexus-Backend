@@ -7,14 +7,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 /**
- * DTO for creating a new novelty.
- * Validates all required fields for novelty creation.
- * The crew assignment is optional at creation time and can be assigned later.
+ * DTO para la creación de una novedad.
+ * Mapea exactamente los campos del formulario.
+ * TODOS LOS CAMPOS SON OBLIGATORIOS excepto address y observations.
  * 
  * @author EBSA Nexus Team
- * @version 1.0
- * @since 2025-10-21
+ * @version 2.0
+ * @since 2025-10-22
  */
 @Data
 @Builder
@@ -22,14 +25,44 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateNoveltyRequest {
     
-    @NotNull(message = "Reason is required")
+    @NotNull(message = "El área es obligatoria")
+    @Positive(message = "El área debe ser un ID válido")
+    private Long areaId;
+
+    @NotNull(message = "El motivo es obligatorio")
     private NoveltyReason reason;
-    
-    @NotBlank(message = "Description is required")
-    @Size(min = 10, max = 2000, message = "Description must be between 10 and 2000 characters")
+
+    @NotBlank(message = "El número de cuenta es obligatorio")
+    @Size(max = 50, message = "El número de cuenta no puede exceder 50 caracteres")
+    private String accountNumber;
+
+    @NotBlank(message = "El número del medidor es obligatorio")
+    @Size(max = 50, message = "El número del medidor no puede exceder 50 caracteres")
+    private String meterNumber;
+
+    @NotNull(message = "La lectura activa es obligatoria")
+    @DecimalMin(value = "0.0", message = "La lectura activa debe ser mayor o igual a 0")
+    private BigDecimal activeReading;
+
+    @NotNull(message = "La lectura reactiva es obligatoria")
+    @DecimalMin(value = "0.0", message = "La lectura reactiva debe ser mayor o igual a 0")
+    private BigDecimal reactiveReading;
+
+    @NotBlank(message = "El municipio es obligatorio")
+    @Size(max = 100, message = "El municipio no puede exceder 100 caracteres")
+    private String municipality;
+
+    @Size(max = 255, message = "La dirección no puede exceder 255 caracteres")
+    private String address;
+
+    @NotBlank(message = "La descripción es obligatoria")
+    @Size(min = 10, max = 1000, message = "La descripción debe tener entre 10 y 1000 caracteres")
     private String description;
-    
-    @NotBlank(message = "Location is required")
-    @Size(max = 255, message = "Location must not exceed 255 characters")
-    private String location;
+
+    @Size(max = 1000, message = "Las observaciones no pueden exceder 1000 caracteres")
+    private String observations;
+
+    @NotNull(message = "Debe proporcionar al menos una evidencia (imagen)")
+    @Size(min = 1, max = 10, message = "Debe proporcionar entre 1 y 10 imágenes")
+    private List<@NotBlank(message = "La URL de la imagen no puede estar vacía") String> imageUrls;
 }

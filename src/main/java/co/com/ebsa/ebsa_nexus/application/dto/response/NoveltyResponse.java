@@ -7,14 +7,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
  * DTO for novelty summary response.
- * Contains basic information for list views.
+ * Contains basic information for list views aligned with meter reading form.
  * 
  * @author EBSA Nexus Team
- * @version 1.0
+ * @version 2.0
  * @since 2025-10-21
  */
 @Data
@@ -24,19 +25,29 @@ import java.time.LocalDateTime;
 public class NoveltyResponse {
     
     private Long id;
-    private Long crewId;
+    private Long areaId;
     private NoveltyReason reason;
+    private String accountNumber;
+    private String meterNumber;
+    private BigDecimal activeReading;
+    private BigDecimal reactiveReading;
+    private String municipality;
+    private String address;
     private String description;
-    private String location;
+    private String observations;
     private NoveltyStatus status;
-    private Long reportedByUserId;
-    private LocalDateTime reportedAt;
-    private LocalDateTime resolvedAt;
+    private Long createdBy;
+    private Long crewId;
     
     /**
      * Creation timestamp.
      */
     private LocalDateTime createdAt;
+    
+    /**
+     * Last update timestamp.
+     */
+    private LocalDateTime updatedAt;
     
     /**
      * Completion timestamp (if applicable).
@@ -47,6 +58,11 @@ public class NoveltyResponse {
      * Closure timestamp (if applicable).
      */
     private LocalDateTime closedAt;
+    
+    /**
+     * Cancellation timestamp (if applicable).
+     */
+    private LocalDateTime cancelledAt;
     
     /**
      * Number of images attached.

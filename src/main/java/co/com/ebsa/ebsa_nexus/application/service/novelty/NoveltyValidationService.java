@@ -55,7 +55,7 @@ public class NoveltyValidationService {
      */
     public void validateCanUploadImages(Long userId, Novelty novelty) {
         // Users who can upload images:
-        // 1. The supervisor who reported the novelty
+        // 1. The user who created the novelty
         // 2. The crew assigned to resolve the novelty
         // 3. Admin users
         
@@ -66,8 +66,8 @@ public class NoveltyValidationService {
         }
 
         // Check if novelty is in a state that allows image uploads
-        if (novelty.getStatus() == NoveltyStatus.CLOSED || novelty.getStatus() == NoveltyStatus.CANCELLED) {
-            throw new NoveltyOperationException("Cannot upload images to a CLOSED or CANCELLED novelty");
+        if (novelty.getStatus() == NoveltyStatus.CERRADA || novelty.getStatus() == NoveltyStatus.CANCELADA) {
+            throw new NoveltyOperationException("Cannot upload images to a CERRADA or CANCELADA novelty");
         }
     }
 
@@ -91,10 +91,10 @@ public class NoveltyValidationService {
      * Validate that novelty status allows assignment
      */
     public void validateStatusForAssignment(Novelty novelty) {
-        // Can only assign if status is REPORTED or ASSIGNED (re-assignment)
-        if (novelty.getStatus() != NoveltyStatus.REPORTED && novelty.getStatus() != NoveltyStatus.ASSIGNED) {
+        // Can only assign if status is CREADA (new novelty)
+        if (novelty.getStatus() != NoveltyStatus.CREADA) {
             throw new NoveltyOperationException(
-                "Novelty must be in REPORTED or ASSIGNED status to be assigned. Current status: " + novelty.getStatus()
+                "Novelty must be in CREADA status to be assigned. Current status: " + novelty.getStatus()
             );
         }
     }

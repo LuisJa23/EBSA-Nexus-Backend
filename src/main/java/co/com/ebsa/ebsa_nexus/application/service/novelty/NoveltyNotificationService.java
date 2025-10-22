@@ -69,8 +69,8 @@ public class NoveltyNotificationService {
      * Notify when novelty status changes
      */
     public void notifyStatusChange(Novelty novelty) {
-        // Notify supervisor who reported the novelty
-        createNotification(novelty.getReportedByUserId(), novelty, "STATUS_CHANGE",
+        // Notify user who created the novelty
+        createNotification(novelty.getCreatedBy(), novelty, "STATUS_CHANGE",
             "Cambio de estado en novedad",
             String.format("La novedad ha cambiado de estado a: %s", novelty.getStatus()));
 
@@ -78,49 +78,47 @@ public class NoveltyNotificationService {
     }
 
     /**
-     * Notify when novelty is resolved
+     * Notify when novelty is completed
      */
     public void notifyResolution(Novelty novelty) {
-        // Notify supervisor who reported the novelty
-        createNotification(novelty.getReportedByUserId(), novelty, "NOVELTY_RESOLVED",
-            "Novedad resuelta",
-            "La novedad ha sido marcada como resuelta. Pendiente de verificación administrativa.");
+        // Notify user who created the novelty
+        createNotification(novelty.getCreatedBy(), novelty, "NOVELTY_COMPLETED",
+            "Novedad completada",
+            "La novedad ha sido marcada como completada. Pendiente de cierre administrativo.");
 
         // TODO: Notify all admin users for verification
         // List<User> admins = userRepository.findByRole("ADMIN");
         // for (User admin : admins) {
-        //     createNotification(admin.getId(), novelty, "PENDING_VERIFICATION",
-        //         "Novedad pendiente de verificación",
-        //         "Una novedad ha sido resuelta y requiere verificación");
+        //     createNotification(admin.getId(), novelty, "PENDING_CLOSURE",
+        //         "Novedad pendiente de cierre",
+        //         "Una novedad ha sido completada y requiere cierre administrativo");
         // }
     }
 
     /**
-     * Notify when resolution is rejected
+     * Notify when completion is rejected
      */
     public void notifyRejection(Novelty novelty) {
         // TODO: Notify crew members of the assigned crew
         // NoveltyAssignment assignment = assignmentRepository.findByNoveltyId(novelty.getId());
         // List<User> crewMembers = userRepository.findByCrewId(assignment.getAssignedCrewId());
         // for (User member : crewMembers) {
-        //     createNotification(member.getId(), novelty, "RESOLUTION_REJECTED",
-        //         "Resolución rechazada",
-        //         "La resolución de la novedad ha sido rechazada. Requiere trabajo adicional");
+        //     createNotification(member.getId(), novelty, "COMPLETION_REJECTED",
+        //         "Completación rechazada",
+        //         "La completación de la novedad ha sido rechazada. Requiere trabajo adicional");
         // }
         
-        createNotification(novelty.getResolvedByUserId(), novelty, "RESOLUTION_REJECTED",
-            "Resolución rechazada",
-            String.format("La resolución ha sido rechazada. Motivo: %s", novelty.getVerificationNotes()));
+        // For now, skip notification as we don't have a resolvedBy field anymore
     }
 
     /**
      * Notify when novelty is cancelled
      */
     public void notifyCancellation(Novelty novelty) {
-        // Notify supervisor who reported
-        createNotification(novelty.getReportedByUserId(), novelty, "NOVELTY_CANCELLED",
+        // Notify user who created the novelty
+        createNotification(novelty.getCreatedBy(), novelty, "NOVELTY_CANCELLED",
             "Novedad cancelada",
-            String.format("La novedad ha sido cancelada. Motivo: %s", novelty.getCancellationReason()));
+            "La novedad ha sido cancelada. Revisa las observaciones para más detalles.");
 
         // TODO: Notify assigned crew if exists
     }

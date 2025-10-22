@@ -19,6 +19,14 @@ import java.util.Map;
 
 /**
  * Service to generate reports and statistics for novelties
+ * 
+ * TODO: This service needs to be updated to use new Novelty fields:
+ * - Use createdAt instead of reportedAt
+ * - Use completedAt instead of resolvedAt  
+ * - Update status values to CREADA, EN_CURSO, COMPLETADA, CERRADA, CANCELADA
+ * - Remove references to verifiedByUserId
+ * 
+ * TEMPORARILY DISABLED until update is complete.
  */
 @Service
 @Transactional
@@ -36,194 +44,28 @@ public class NoveltyReportService {
 
     /**
      * Generate a comprehensive report for given period and filters
+     * TEMPORARILY DISABLED - needs update for new schema
      */
     public StatisticalReport generateReport(StatisticalReportRequest request, Long generatedByUserId) {
-        // Validate request
-        if (request.getStartDate().isAfter(request.getEndDate())) {
-            throw new NoveltyOperationException("Start date must be before end date");
-        }
-
-        // Generate report data
-        Map<String, Object> reportData = new HashMap<>();
-        
-        // Get novelties for the period
-        List<Novelty> novelties = noveltyRepository.findByReportedAtBetween(
-                request.getStartDate().atStartOfDay(),
-                request.getEndDate().atTime(23, 59, 59)
-        );
-
-        // Filter by crew if specified
-        if (request.getCrewId() != null) {
-            novelties = novelties.stream()
-                    .filter(n -> n.getCrewId().equals(request.getCrewId()))
-                    .toList();
-        }
-
-        // Filter by status if specified
-        if (request.getStatus() != null) {
-            NoveltyStatus status = NoveltyStatus.valueOf(request.getStatus());
-            novelties = novelties.stream()
-                    .filter(n -> n.getStatus().equals(status))
-                    .toList();
-        }
-
-        // Calculate statistics
-        reportData.put("totalNovelties", novelties.size());
-        reportData.put("periodStart", request.getStartDate().toString());
-        reportData.put("periodEnd", request.getEndDate().toString());
-        
-        // Count by status
-        Map<String, Long> byStatus = new HashMap<>();
-        for (NoveltyStatus status : NoveltyStatus.values()) {
-            long count = novelties.stream()
-                    .filter(n -> n.getStatus().equals(status))
-                    .count();
-            byStatus.put(status.name(), count);
-        }
-        reportData.put("byStatus", byStatus);
-
-        // Count by reason
-        Map<String, Long> byReason = new HashMap<>();
-        for (NoveltyReason reason : NoveltyReason.values()) {
-            long count = novelties.stream()
-                    .filter(n -> n.getReason().equals(reason))
-                    .count();
-            byReason.put(reason.name(), count);
-        }
-        reportData.put("byReason", byReason);
-
-        // Calculate resolution metrics
-        List<Novelty> resolvedNovelties = novelties.stream()
-                .filter(n -> n.getResolvedAt() != null)
-                .toList();
-
-        if (!resolvedNovelties.isEmpty()) {
-            // Average resolution time in hours
-            double avgResolutionHours = resolvedNovelties.stream()
-                    .mapToLong(n -> java.time.Duration.between(n.getReportedAt(), n.getResolvedAt()).toHours())
-                    .average()
-                    .orElse(0.0);
-            reportData.put("averageResolutionTimeHours", avgResolutionHours);
-
-            // Resolution rate
-            double resolutionRate = (resolvedNovelties.size() * 100.0) / novelties.size();
-            reportData.put("resolutionRate", String.format("%.2f%%", resolutionRate));
-        }
-
-        // Count verified vs rejected
-        long verifiedCount = novelties.stream()
-                .filter(n -> n.getStatus().equals(NoveltyStatus.CLOSED))
-                .count();
-        long rejectedCount = novelties.stream()
-                .filter(n -> n.getStatus().equals(NoveltyStatus.IN_PROGRESS) && n.getVerifiedByUserId() != null)
-                .count();
-        reportData.put("verifiedCount", verifiedCount);
-        reportData.put("rejectedCount", rejectedCount);
-
-        // Top reasons
-        String topReason = byReason.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("N/A");
-        reportData.put("topReason", topReason);
-
-        // Create report entity
-        StatisticalReport report = new StatisticalReport();
-        report.setReportType(request.getReportType());
-        report.setStartDate(request.getStartDate());
-        report.setEndDate(request.getEndDate());
-        report.setCrewId(request.getCrewId());
-        report.setStatus(request.getStatus());
-        report.setReportData(reportData.toString()); // Convert to JSON string in real implementation
-        report.setGeneratedByUserId(generatedByUserId);
-        report.setGeneratedAt(LocalDateTime.now());
-
-        // Save and return
-        return statisticalReportRepository.save(report);
+        throw new NoveltyOperationException("Report generation temporarily disabled during schema migration");
     }
 
     /**
      * Get statistics summary for dashboard
+     * TEMPORARILY DISABLED - needs update for new schema
      */
     @Transactional(readOnly = true)
     public Map<String, Object> getDashboardStatistics() {
-        Map<String, Object> stats = new HashMap<>();
-
-        // Count by status
-        for (NoveltyStatus status : NoveltyStatus.values()) {
-            long count = noveltyRepository.countByStatus(status);
-            stats.put(status.name().toLowerCase() + "Count", count);
-        }
-
-        // Today's novelties
-        LocalDate today = LocalDate.now();
-        List<Novelty> todayNovelties = noveltyRepository.findByReportedAtBetween(
-                today.atStartOfDay(),
-                today.atTime(23, 59, 59)
-        );
-        stats.put("todayCount", todayNovelties.size());
-
-        // This week's novelties
-        LocalDate weekStart = today.minusDays(7);
-        List<Novelty> weekNovelties = noveltyRepository.findByReportedAtBetween(
-                weekStart.atStartOfDay(),
-                today.atTime(23, 59, 59)
-        );
-        stats.put("weekCount", weekNovelties.size());
-
-        // Pending assignment (REPORTED status)
-        long pendingAssignment = noveltyRepository.countByStatus(NoveltyStatus.REPORTED);
-        stats.put("pendingAssignment", pendingAssignment);
-
-        // Pending verification (RESOLVED status)
-        long pendingVerification = noveltyRepository.countByStatus(NoveltyStatus.RESOLVED);
-        stats.put("pendingVerification", pendingVerification);
-
-        return stats;
+        throw new NoveltyOperationException("Dashboard statistics temporarily disabled during schema migration");
     }
 
     /**
      * Get crew performance metrics
+     * TEMPORARILY DISABLED - needs update for new schema
      */
     @Transactional(readOnly = true)
     public Map<String, Object> getCrewPerformance(Long crewId, LocalDate startDate, LocalDate endDate) {
-        Map<String, Object> performance = new HashMap<>();
-
-        // Get crew novelties in period
-        List<Novelty> crewNovelties = noveltyRepository.findByCrewIdAndReportedAtBetween(
-                crewId,
-                startDate.atStartOfDay(),
-                endDate.atTime(23, 59, 59)
-        );
-
-        performance.put("totalNovelties", crewNovelties.size());
-
-        // Resolved count
-        long resolvedCount = crewNovelties.stream()
-                .filter(n -> n.getStatus().equals(NoveltyStatus.CLOSED))
-                .count();
-        performance.put("resolvedCount", resolvedCount);
-
-        // Resolution rate
-        if (!crewNovelties.isEmpty()) {
-            double resolutionRate = (resolvedCount * 100.0) / crewNovelties.size();
-            performance.put("resolutionRate", String.format("%.2f%%", resolutionRate));
-        }
-
-        // Average resolution time
-        List<Novelty> resolvedNovelties = crewNovelties.stream()
-                .filter(n -> n.getResolvedAt() != null)
-                .toList();
-
-        if (!resolvedNovelties.isEmpty()) {
-            double avgHours = resolvedNovelties.stream()
-                    .mapToLong(n -> java.time.Duration.between(n.getReportedAt(), n.getResolvedAt()).toHours())
-                    .average()
-                    .orElse(0.0);
-            performance.put("averageResolutionHours", avgHours);
-        }
-
-        return performance;
+        throw new NoveltyOperationException("Crew performance metrics temporarily disabled during schema migration");
     }
 
     /**

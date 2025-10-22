@@ -89,29 +89,29 @@ public interface NoveltyRepository {
     );
     
     /**
-     * Obtiene novedades por cuadrilla ordenadas por fecha de reporte.
+     * Obtiene novedades por cuadrilla ordenadas por fecha de creación.
      * 
      * @param crewId ID de la cuadrilla
      * @return Lista de novedades de la cuadrilla
      */
-    List<Novelty> findByCrewIdOrderByReportedAtDesc(Long crewId);
+    List<Novelty> findByCrewIdOrderByCreatedAtDesc(Long crewId);
     
     /**
-     * Obtiene novedades por estado ordenadas por fecha de reporte.
+     * Obtiene novedades por estado ordenadas por fecha de creación.
      * 
      * @param status Estado
      * @return Lista de novedades con ese estado
      */
-    List<Novelty> findByStatusOrderByReportedAtDesc(NoveltyStatus status);
+    List<Novelty> findByStatusOrderByCreatedAtDesc(NoveltyStatus status);
     
     /**
-     * Obtiene novedades reportadas en un rango de fechas.
+     * Obtiene novedades creadas en un rango de fechas.
      * 
      * @param startDateTime Fecha/hora inicio
      * @param endDateTime Fecha/hora fin
      * @return Lista de novedades en el rango
      */
-    List<Novelty> findByReportedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<Novelty> findByCreatedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime);
     
     /**
      * Obtiene novedades de una cuadrilla en un rango de fechas.
@@ -121,7 +121,7 @@ public interface NoveltyRepository {
      * @param endDateTime Fecha/hora fin
      * @return Lista de novedades de la cuadrilla en el rango
      */
-    List<Novelty> findByCrewIdAndReportedAtBetween(Long crewId, LocalDateTime startDateTime, LocalDateTime endDateTime);
+    List<Novelty> findByCrewIdAndCreatedAtBetween(Long crewId, LocalDateTime startDateTime, LocalDateTime endDateTime);
     
     /**
      * Cuenta novedades por estado.

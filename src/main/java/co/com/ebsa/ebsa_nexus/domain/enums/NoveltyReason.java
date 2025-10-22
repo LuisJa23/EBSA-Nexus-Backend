@@ -1,65 +1,28 @@
 package co.com.ebsa.ebsa_nexus.domain.enums;
 
 /**
- * Motivos por los cuales se crea una novedad en el sistema de gestión de cuadrillas.
- * 
- * <p>Cubre diferentes tipos de fallas y situaciones que requieren atención
- * por parte de las cuadrillas de mantenimiento eléctrico.</p>
+ * Motivos por los cuales se crea una novedad.
+ * Coincide exactamente con las opciones del formulario.
  * 
  * @author EBSA Nexus Team
  * @version 2.0
- * @since 2025-01-21
+ * @since 2025-10-22
  */
 public enum NoveltyReason {
     /**
-     * Falla en equipos eléctricos (transformadores, interruptores, etc.).
+     * Error en la lectura del medidor
      */
-    EQUIPMENT_FAILURE("Falla de Equipo"),
+    ERROR_LECTURA("Error de lectura"),
     
     /**
-     * Corte o interrupción del servicio eléctrico.
+     * Actualización de datos del cliente o medidor
      */
-    POWER_OUTAGE("Corte de Energía"),
+    ACTUALIZACION_DATOS("Actualización de datos"),
     
     /**
-     * Daños en cables, postes o infraestructura de red.
+     * Otros motivos no especificados
      */
-    INFRASTRUCTURE_DAMAGE("Daño en Infraestructura"),
-    
-    /**
-     * Mantenimiento preventivo programado.
-     */
-    PREVENTIVE_MAINTENANCE("Mantenimiento Preventivo"),
-    
-    /**
-     * Emergencia que requiere atención inmediata.
-     */
-    EMERGENCY("Emergencia"),
-    
-    /**
-     * Instalación de nuevos equipos o medidores.
-     */
-    INSTALLATION("Instalación"),
-    
-    /**
-     * Inspección de rutina o verificación.
-     */
-    INSPECTION("Inspección"),
-    
-    /**
-     * Error en la lectura del medidor eléctrico.
-     */
-    READING_ERROR("Error de Lectura"),
-    
-    /**
-     * Requiere actualización de datos del cliente o medidor.
-     */
-    DATA_UPDATE("Actualización de Datos"),
-    
-    /**
-     * Otros motivos no especificados.
-     */
-    OTHER("Otros");
+    OTROS("Otros");
     
     private final String displayName;
     

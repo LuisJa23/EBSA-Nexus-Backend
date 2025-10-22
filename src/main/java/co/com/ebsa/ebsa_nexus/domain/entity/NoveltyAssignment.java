@@ -46,6 +46,28 @@ public class NoveltyAssignment {
     @Column(name = "assigned_by_user_id", nullable = false)
     private Long assignedByUserId;
     
+    @Column(name = "assigned_by", nullable = false)
+    private Long assignedBy;
+    
+    @Column(name = "crew_id", nullable = false)
+    private Long crewId;
+    
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private String status = "ACTIVE";
+    
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+    
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+    
+    @Column(name = "started_at")
+    private LocalDateTime startedAt;
+    
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+    
     @Column(columnDefinition = "TEXT")
     private String instructions;
     

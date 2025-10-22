@@ -45,23 +45,23 @@ public class NoveltyRepositoryAdapter implements NoveltyRepository {
     }
 
     @Override
-    public List<Novelty> findByCrewIdOrderByReportedAtDesc(Long crewId) {
-        return jpaNoveltyRepository.findByCrewIdOrderByReportedAtDesc(crewId);
+    public List<Novelty> findByCrewIdOrderByCreatedAtDesc(Long crewId) {
+        return jpaNoveltyRepository.findByCrewIdOrderByCreatedAtDesc(crewId);
     }
 
     @Override
-    public List<Novelty> findByStatusOrderByReportedAtDesc(NoveltyStatus status) {
-        return jpaNoveltyRepository.findByStatusOrderByReportedAtDesc(status);
+    public List<Novelty> findByStatusOrderByCreatedAtDesc(NoveltyStatus status) {
+        return jpaNoveltyRepository.findByStatusOrderByCreatedAtDesc(status);
     }
 
     @Override
-    public List<Novelty> findByReportedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        return jpaNoveltyRepository.findByReportedAtBetween(startDateTime, endDateTime);
+    public List<Novelty> findByCreatedAtBetween(LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        return jpaNoveltyRepository.findByCreatedAtBetween(startDateTime, endDateTime);
     }
 
     @Override
-    public List<Novelty> findByCrewIdAndReportedAtBetween(Long crewId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
-        return jpaNoveltyRepository.findByCrewIdAndReportedAtBetween(crewId, startDateTime, endDateTime);
+    public List<Novelty> findByCrewIdAndCreatedAtBetween(Long crewId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        return jpaNoveltyRepository.findByCrewIdAndCreatedAtBetween(crewId, startDateTime, endDateTime);
     }
 
     @Override
@@ -100,6 +100,6 @@ public class NoveltyRepositoryAdapter implements NoveltyRepository {
         if (createdById == null) {
             throw new IllegalArgumentException("Created by ID cannot be null");
         }
-        return jpaNoveltyRepository.findByReportedByUserIdOrderByReportedAtDesc(createdById, pageable);
+        return jpaNoveltyRepository.findByCreatedByOrderByCreatedAtDesc(createdById, pageable);
     }
 }
