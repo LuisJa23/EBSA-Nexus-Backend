@@ -46,7 +46,7 @@ public class AuthenticateApplicationService {
             // Convertir WorkType enum a string (intern o extern en minúsculas)
             String workType = user.getWorkType() != null ? user.getWorkType().name() : null;
             
-            String token = jwtUtil.generateToken(user.getEmail(), roleName);
+            String token = jwtUtil.generateToken(user.getEmail(), roleName, user.getId());
             
             return new LoginResponseDTO(
                 user.getId(), 

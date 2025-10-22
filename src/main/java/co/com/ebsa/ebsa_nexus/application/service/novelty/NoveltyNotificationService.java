@@ -5,6 +5,7 @@ import co.com.ebsa.ebsa_nexus.domain.entity.Novelty;
 import co.com.ebsa.ebsa_nexus.domain.entity.NoveltyAssignment;
 import co.com.ebsa.ebsa_nexus.domain.entity.User;
 import co.com.ebsa.ebsa_nexus.domain.repository.NotificationRepository;
+import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,9 +19,11 @@ import java.time.LocalDateTime;
 public class NoveltyNotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final EntityManager entityManager;
 
-    public NoveltyNotificationService(NotificationRepository notificationRepository) {
+    public NoveltyNotificationService(NotificationRepository notificationRepository, EntityManager entityManager) {
         this.notificationRepository = notificationRepository;
+        this.entityManager = entityManager;
     }
 
     /**
@@ -135,12 +138,17 @@ public class NoveltyNotificationService {
 
     // Private helper method to create notification
     private void createNotification(Long userId, Novelty novelty, String type, String title, String message) {
+        // Skip notification if userId is null (for now, until we implement admin user lookup)
+        if (userId == null) {
+            return;
+        }
+        
         Notification notification = new Notification();
         
-        // Set user by creating a proxy reference (no DB call needed)
-        User user = new User();
-        user.setId(userId);
-        notification.setUser(user);
+        // Use EntityManager.getReference to create a lazy proxy without hitting the database
+        // This assumes the userId exists in the database
+        User userProxy = entityManager.getReference(User.class, userId);
+        notification.setUser(userProxy);
         
         // Set novelty directly
         notification.setNovelty(novelty);

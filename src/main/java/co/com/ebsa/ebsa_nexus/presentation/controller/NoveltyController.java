@@ -31,14 +31,14 @@ public class NoveltyController {
     private final NoveltyService noveltyService;
 
     /**
-     * Create a new novelty (Supervisor only).
+     * Create a new novelty (Supervisor or Admin).
      * 
      * @param request Novelty creation data
      * @param userId User ID from authentication context
      * @return Created novelty details
      */
     @PostMapping
-    @PreAuthorize("hasRole('SUPERVISOR')")
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'ADMIN')")
     public ResponseEntity<NoveltyResponse> createNovelty(
             @Valid @RequestBody CreateNoveltyRequest request,
             @RequestAttribute("userId") Long userId) {

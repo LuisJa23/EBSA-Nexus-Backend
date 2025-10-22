@@ -49,7 +49,7 @@ public class Novelty {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "crew_id", nullable = false)
+    @Column(name = "crew_id", nullable = true)
     private Long crewId;
     
     @Enumerated(EnumType.STRING)

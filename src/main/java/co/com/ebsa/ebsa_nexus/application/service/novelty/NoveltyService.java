@@ -49,17 +49,14 @@ public class NoveltyService {
 
     /**
      * Create a new novelty from supervisor report
+     * The novelty is created in REPORTED status without crew assignment
      */
     public NoveltyResponse createNovelty(CreateNoveltyRequest request, Long reportedByUserId) {
         // Validate supervisor can report novelty
         validationService.validateSupervisorCanReport(reportedByUserId);
 
-        // Validate crew exists
-        validationService.validateCrewExists(request.getCrewId());
-
-        // Create novelty entity
+        // Create novelty entity in REPORTED status (no crew assigned yet)
         Novelty novelty = new Novelty();
-        novelty.setCrewId(request.getCrewId());
         novelty.setReason(request.getReason());
         novelty.setDescription(request.getDescription());
         novelty.setLocation(request.getLocation());

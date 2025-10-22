@@ -62,6 +62,29 @@ public class JwtUtil {
     }
 
     /**
+     * Genera un token JWT completo con email, rol y userId.
+     * 
+     * @param email el email del usuario
+     * @param role el rol del usuario
+     * @param userId el ID del usuario
+     * @return el token JWT generado
+     */
+    public String generateToken(String email, String role, Long userId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
+
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("role", role)
+                .claim("userId", userId)
+                .setIssuer(jwtIssuer)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    /**
      * Valida si un token JWT es válido verificando issuer y expiración.
      * 
      * @param token el token JWT a validar (no debe ser null o vacío)
@@ -124,6 +147,20 @@ public class JwtUtil {
             return null;
         }
         return getClaims(token).get("role", String.class);
+    }
+
+    /**
+     * Extrae el userId del token JWT.
+     * 
+     * @param token el token JWT del cual extraer el userId
+     * @return el userId o null si el token es inválido, vacío o no contiene userId
+     */
+    public Long extractUserId(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return null;
+        }
+        Integer userId = getClaims(token).get("userId", Integer.class);
+        return userId != null ? userId.longValue() : null;
     }
 
     /**

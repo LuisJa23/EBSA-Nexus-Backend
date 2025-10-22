@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS `Location` (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `novelties` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `crew_id` BIGINT UNSIGNED NOT NULL,
+  `crew_id` BIGINT UNSIGNED NULL,
   `status` VARCHAR(20) NOT NULL DEFAULT 'REPORTED',
   `reason` VARCHAR(50) NOT NULL,
   `description` TEXT NOT NULL,

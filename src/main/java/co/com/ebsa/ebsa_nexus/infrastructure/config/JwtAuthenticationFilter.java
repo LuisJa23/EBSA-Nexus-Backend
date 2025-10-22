@@ -54,10 +54,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtUtil.validateToken(token)) {
                     String email = jwtUtil.extractEmail(token);
                     String role = jwtUtil.extractRole(token);
+                    Long userId = jwtUtil.extractUserId(token);
                     
-                    log.info("JWT validation successful for email: {} with role: {}", email, role);
+                    log.info("JWT validation successful for email: {} with role: {} and userId: {}", email, role, userId);
                     
                     if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                        // Establecer userId como atributo del request si existe
+                        if (userId != null) {
+                            request.setAttribute("userId", userId);
+                            log.debug("Set userId attribute: {}", userId);
+                        }
+                        
                         // Crear la autenticación con el rol
                         SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
                         UsernamePasswordAuthenticationToken authentication = 
