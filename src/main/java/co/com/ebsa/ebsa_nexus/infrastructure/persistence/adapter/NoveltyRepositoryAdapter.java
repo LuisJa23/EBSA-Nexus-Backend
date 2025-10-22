@@ -86,4 +86,65 @@ public class NoveltyRepositoryAdapter implements NoveltyRepository {
     public boolean existsById(Long id) {
         return jpaNoveltyRepository.existsById(id);
     }
+
+    @Override
+    public Optional<Novelty> findByNoveltyUuid(String uuid) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            throw new IllegalArgumentException("UUID cannot be null or empty");
+        }
+        return jpaNoveltyRepository.findByNoveltyUuid(uuid);
+    }
+
+    @Override
+    public boolean existsByNoveltyUuid(String uuid) {
+        if (uuid == null || uuid.trim().isEmpty()) {
+            throw new IllegalArgumentException("UUID cannot be null or empty");
+        }
+        return jpaNoveltyRepository.existsByNoveltyUuid(uuid);
+    }
+
+    @Override
+    public Page<Novelty> findByStatus(NoveltyStatus status, Pageable pageable) {
+        if (status == null) {
+            throw new IllegalArgumentException("Status cannot be null");
+        }
+        return jpaNoveltyRepository.findByStatus(status, pageable);
+    }
+
+    @Override
+    public Page<Novelty> findByAreaId(Long areaId, Pageable pageable) {
+        if (areaId == null) {
+            throw new IllegalArgumentException("Area ID cannot be null");
+        }
+        return jpaNoveltyRepository.findByAreaId(areaId, pageable);
+    }
+
+    @Override
+    public Page<Novelty> findByCreatedById(Long createdById, Pageable pageable) {
+        if (createdById == null) {
+            throw new IllegalArgumentException("Created by ID cannot be null");
+        }
+        return jpaNoveltyRepository.findByReportedByUserIdOrderByReportedAtDesc(createdById, pageable);
+    }
+
+    @Override
+    public long countByAreaId(Long areaId) {
+        if (areaId == null) {
+            throw new IllegalArgumentException("Area ID cannot be null");
+        }
+        return jpaNoveltyRepository.countByAreaId(areaId);
+    }
+
+    @Override
+    public Page<Novelty> findNoveltiesAssignedToUser(Long userId, Pageable pageable) {
+        if (userId == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+        return jpaNoveltyRepository.findNoveltiesAssignedToUser(userId, pageable);
+    }
+
+    @Override
+    public List<Novelty> findOfflineNovelties() {
+        return jpaNoveltyRepository.findByIsOfflineTrue();
+    }
 }

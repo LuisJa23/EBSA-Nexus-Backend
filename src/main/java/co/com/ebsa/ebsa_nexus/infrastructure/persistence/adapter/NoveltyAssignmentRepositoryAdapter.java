@@ -46,7 +46,7 @@ public class NoveltyAssignmentRepositoryAdapter implements NoveltyAssignmentRepo
         if (noveltyId == null) {
             throw new IllegalArgumentException("Novelty ID cannot be null");
         }
-        return jpaRepository.findByNoveltyIdOrderByAssignedAtDesc(noveltyId);
+        return jpaRepository.findByNoveltyId(noveltyId);
     }
 
     @Override
@@ -54,72 +54,54 @@ public class NoveltyAssignmentRepositoryAdapter implements NoveltyAssignmentRepo
         if (noveltyId == null) {
             throw new IllegalArgumentException("Novelty ID cannot be null");
         }
-        return jpaRepository.findFirstByNoveltyIdAndActiveOrderByAssignedAtDesc(noveltyId, true);
+        return jpaRepository.findActiveByNoveltyId(noveltyId);
     }
 
     @Override
-    public List<NoveltyAssignment> findByAssignedCrewId(Long crewId) {
+    public List<NoveltyAssignment> findActiveByCrewId(Long crewId) {
         if (crewId == null) {
             throw new IllegalArgumentException("Crew ID cannot be null");
         }
-        return jpaRepository.findByAssignedCrewIdOrderByAssignedAtDesc(crewId);
+        return jpaRepository.findActiveByCrewId(crewId);
     }
 
     @Override
-    public List<NoveltyAssignment> findByAssignedByUserId(Long userId) {
+    public List<NoveltyAssignment> findByCrewId(Long crewId) {
+        if (crewId == null) {
+            throw new IllegalArgumentException("Crew ID cannot be null");
+        }
+        return jpaRepository.findByCrewId(crewId);
+    }
+
+    @Override
+    public List<NoveltyAssignment> findByAssignedById(Long userId) {
         if (userId == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
-        return jpaRepository.findByAssignedByUserIdOrderByAssignedAtDesc(userId);
+        return jpaRepository.findByAssignedById(userId);
     }
 
     @Override
-    public long countByAssignedCrewId(Long crewId) {
+    public void deactivateAllByNoveltyId(Long noveltyId) {
+        if (noveltyId == null) {
+            throw new IllegalArgumentException("Novelty ID cannot be null");
+        }
+        jpaRepository.deactivateAllByNoveltyId(noveltyId);
+    }
+
+    @Override
+    public boolean existsActiveByNoveltyId(Long noveltyId) {
+        if (noveltyId == null) {
+            throw new IllegalArgumentException("Novelty ID cannot be null");
+        }
+        return jpaRepository.existsActiveByNoveltyId(noveltyId);
+    }
+
+    @Override
+    public long countActiveByCrewId(Long crewId) {
         if (crewId == null) {
             throw new IllegalArgumentException("Crew ID cannot be null");
         }
-        return jpaRepository.countByAssignedCrewId(crewId);
-    }
-
-    @Override
-    public long countActiveAssignmentsByCrewId(Long crewId) {
-        if (crewId == null) {
-            throw new IllegalArgumentException("Crew ID cannot be null");
-        }
-        return jpaRepository.countByAssignedCrewIdAndActive(crewId, true);
-    }
-
-    @Override
-    public void delete(NoveltyAssignment assignment) {
-        if (assignment == null) {
-            throw new IllegalArgumentException("NoveltyAssignment cannot be null");
-        }
-        jpaRepository.delete(assignment);
-    }
-
-    @Override
-    public void deleteById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID cannot be null");
-        }
-        jpaRepository.deleteById(id);
-    }
-
-    @Override
-    public boolean existsById(Long id) {
-        if (id == null) {
-            throw new IllegalArgumentException("ID cannot be null");
-        }
-        return jpaRepository.existsById(id);
-    }
-
-    @Override
-    public List<NoveltyAssignment> findAll() {
-        return jpaRepository.findAll();
-    }
-
-    @Override
-    public long count() {
-        return jpaRepository.count();
+        return jpaRepository.countActiveByCrewId(crewId);
     }
 }

@@ -19,4 +19,6 @@ public interface JpaNoveltyImageRepository extends JpaRepository<NoveltyImage, L
     List<NoveltyImage> findByNoveltyIdOrderByUploadedAtDesc(Long noveltyId);
     
     long countByNoveltyId(Long noveltyId);
+    
+    void deleteByNoveltyId(Long noveltyId);
 }

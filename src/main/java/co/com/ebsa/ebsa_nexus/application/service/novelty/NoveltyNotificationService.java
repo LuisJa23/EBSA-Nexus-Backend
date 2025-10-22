@@ -3,6 +3,7 @@ package co.com.ebsa.ebsa_nexus.application.service.novelty;
 import co.com.ebsa.ebsa_nexus.domain.entity.Notification;
 import co.com.ebsa.ebsa_nexus.domain.entity.Novelty;
 import co.com.ebsa.ebsa_nexus.domain.entity.NoveltyAssignment;
+import co.com.ebsa.ebsa_nexus.domain.entity.User;
 import co.com.ebsa.ebsa_nexus.domain.repository.NotificationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -135,8 +136,15 @@ public class NoveltyNotificationService {
     // Private helper method to create notification
     private void createNotification(Long userId, Novelty novelty, String type, String title, String message) {
         Notification notification = new Notification();
-        notification.setUserId(userId);
-        notification.setNoveltyId(novelty.getId());
+        
+        // Set user by creating a proxy reference (no DB call needed)
+        User user = new User();
+        user.setId(userId);
+        notification.setUser(user);
+        
+        // Set novelty directly
+        notification.setNovelty(novelty);
+        
         notification.setType(type);
         notification.setTitle(title);
         notification.setMessage(message);

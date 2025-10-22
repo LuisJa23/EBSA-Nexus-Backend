@@ -58,4 +58,20 @@ public class NoveltyImageRepositoryAdapter implements NoveltyImageRepository {
     public void deleteById(Long id) {
         jpaNoveltyImageRepository.deleteById(id);
     }
+
+    @Override
+    public void deleteByNoveltyId(Long noveltyId) {
+        if (noveltyId == null) {
+            throw new IllegalArgumentException("Novelty ID cannot be null");
+        }
+        jpaNoveltyImageRepository.deleteByNoveltyId(noveltyId);
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("ID cannot be null");
+        }
+        return jpaNoveltyImageRepository.existsById(id);
+    }
 }

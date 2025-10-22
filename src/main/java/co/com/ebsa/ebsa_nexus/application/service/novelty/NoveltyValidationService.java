@@ -103,7 +103,10 @@ public class NoveltyValidationService {
      * Validate that user is part of the assigned crew
      */
     public void validateUserIsAssignedCrew(Long userId, Novelty novelty) {
-        // TODO: Implement crew membership check when User-Crew relationship is available
+        if (userId == null) {
+            throw new NoveltyOperationException("User ID is required");
+        }
+        
         // Check if novelty is assigned
         NoveltyAssignment assignment = noveltyAssignmentRepository.findByNoveltyIdOrderByAssignedAtDesc(novelty.getId())
                 .stream()
@@ -111,11 +114,13 @@ public class NoveltyValidationService {
                 .orElseThrow(() -> new NoveltyOperationException("Novelty is not assigned to any crew"));
 
         // TODO: Validate user is member of assignment.getAssignedCrewId()
+        // When User-Crew relationship is available, uncomment:
         // CrewMember member = crewMemberRepository.findByCrewIdAndUserId(assignment.getAssignedCrewId(), userId)
         //     .orElseThrow(() -> new NoveltyOperationException("User is not part of the assigned crew"));
         
-        if (userId == null) {
-            throw new NoveltyOperationException("User ID is required");
+        // For now, we just verify that the novelty has an assignment
+        if (assignment.getAssignedCrewId() == null) {
+            throw new NoveltyOperationException("Assignment does not have a valid crew");
         }
     }
 

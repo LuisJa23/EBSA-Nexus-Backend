@@ -70,4 +70,55 @@ public interface JpaNoveltyRepository extends JpaRepository<Novelty, Long> {
         @Param("endDate") LocalDateTime endDate,
         Pageable pageable
     );
+    
+    /**
+     * Busca una novedad por su UUID único.
+     */
+    @Query("SELECT n FROM Novelty n WHERE n.noveltyUuid = :uuid")
+    java.util.Optional<Novelty> findByNoveltyUuid(@Param("uuid") String uuid);
+    
+    /**
+     * Verifica si existe una novedad con el UUID dado.
+     */
+    boolean existsByNoveltyUuid(String uuid);
+    
+    /**
+     * Busca novedades por estado con paginación.
+     */
+    Page<Novelty> findByStatus(NoveltyStatus status, Pageable pageable);
+    
+    /**
+     * Busca novedades por área con paginación.
+     */
+    @Query("SELECT n FROM Novelty n WHERE n.area.id = :areaId ORDER BY n.reportedAt DESC")
+    Page<Novelty> findByAreaId(@Param("areaId") Long areaId, Pageable pageable);
+    
+    /**
+     * Busca novedades creadas por un usuario con paginación.
+     */
+    Page<Novelty> findByReportedByUserIdOrderByReportedAtDesc(Long reportedByUserId, Pageable pageable);
+    
+    /**
+     * Cuenta novedades por área.
+     */
+    @Query("SELECT COUNT(n) FROM Novelty n WHERE n.area.id = :areaId")
+    long countByAreaId(@Param("areaId") Long areaId);
+    
+    /**
+     * Busca novedades asignadas a un usuario (vía cuadrilla).
+     */
+    @Query("""
+        SELECT DISTINCT n FROM Novelty n 
+        JOIN NoveltyAssignment na ON na.novelty.id = n.id
+        JOIN Crew c ON na.crew.id = c.id
+        JOIN CrewMember cm ON cm.crew.id = c.id
+        WHERE cm.user.id = :userId AND na.isActive = true
+        ORDER BY n.reportedAt DESC
+        """)
+    Page<Novelty> findNoveltiesAssignedToUser(@Param("userId") Long userId, Pageable pageable);
+    
+    /**
+     * Busca novedades offline.
+     */
+    List<Novelty> findByIsOfflineTrue();
 }
