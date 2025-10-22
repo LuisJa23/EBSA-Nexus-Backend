@@ -376,103 +376,67 @@ INSERT INTO `Location` (`name`, `details`) VALUES
 -- INSERTAR NOVEDADES DE EJEMPLO
 -- =====================================================
 
--- Novedad 1 - Falla eléctrica en Zona Norte
+-- Novedad 1 - Error de lectura reportado por supervisor
 INSERT INTO `novelties` (
-    `novelty_uuid`,
-    `area_id`,
-    `status_id`,
-    `reported_by`,
-    `title`,
+    `crew_id`,
+    `status`,
+    `reason`,
     `description`,
-    `severity`,
-    `priority`,
-    `account_number`,
-    `meter_number`,
-    `town`,
-    `is_offline`,
-    `created_at`,
-    `id_location`
+    `location`,
+    `reported_by_user_id`,
+    `reported_at`,
+    `created_at`
 ) VALUES (
-    'novelty-uuid-001',
     1,
-    'Por_asignar',
+    'REPORTED',
+    'READING_ERROR',
+    'Transformador presenta sobrecalentamiento y ruidos anormales. Se requiere revisión urgente del medidor.',
+    'Zona Norte - Transformador Principal, Tunja',
     1,
-    'Falla eléctrica en transformador',
-    'Transformador presenta sobrecalentamiento y ruidos anormales',
-    'critical',
-    'critical',
-    '12345',
-    'MET-001',
-    'Tunja',
-    0,
     NOW(),
-    1
+    NOW()
 );
 
--- Novedad 2 - Mantenimiento preventivo
+-- Novedad 2 - Actualización de datos necesaria
 INSERT INTO `novelties` (
-    `novelty_uuid`,
-    `area_id`,
-    `status_id`,
-    `reported_by`,
-    `title`,
+    `crew_id`,
+    `status`,
+    `reason`,
     `description`,
-    `severity`,
-    `priority`,
-    `account_number`,
-    `meter_number`,
-    `town`,
-    `is_offline`,
-    `created_at`,
-    `id_location`
+    `location`,
+    `reported_by_user_id`,
+    `reported_at`,
+    `created_at`
 ) VALUES (
-    'novelty-uuid-002',
     2,
-    'Por_asignar',
+    'REPORTED',
+    'DATA_UPDATE',
+    'Revisión programada de red eléctrica en sector comercial. Actualización de datos de consumo requerida.',
+    'Sector Comercial - Calle 19, Tunja',
     2,
-    'Mantenimiento preventivo de red',
-    'Revisión programada de red eléctrica en sector comercial',
-    'minor',
-    'medium',
-    '54321',
-    'MET-002',
-    'Tunja',
-    0,
     NOW(),
-    2
+    NOW()
 );
 
--- Novedad 3 - Nueva instalación
+-- Novedad 3 - Otro motivo
 INSERT INTO `novelties` (
-    `novelty_uuid`,
-    `area_id`,
-    `status_id`,
-    `reported_by`,
-    `title`,
+    `crew_id`,
+    `status`,
+    `reason`,
     `description`,
-    `severity`,
-    `priority`,
-    `account_number`,
-    `meter_number`,
-    `town`,
-    `is_offline`,
-    `created_at`,
-    `id_location`
+    `location`,
+    `reported_by_user_id`,
+    `reported_at`,
+    `created_at`
 ) VALUES (
-    'novelty-uuid-003',
     3,
-    'Por_asignar',
+    'REPORTED',
+    'OTHER',
+    'Cliente solicita instalación de medidor bifásico. Nueva instalación requerida en barrio residencial.',
+    'Nueva Instalación - Barrio Sur, Tunja',
     2,
-    'Instalación de nuevo medidor',
-    'Cliente solicita instalación de medidor bifásico',
-    'minor',
-    'low',
-    '98765',
-    'MET-003',
-    'Tunja',
-    0,
     NOW(),
-    3
+    NOW()
 );
 
 -- =====================================================

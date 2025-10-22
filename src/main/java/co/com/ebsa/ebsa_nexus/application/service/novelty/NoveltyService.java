@@ -113,7 +113,7 @@ public class NoveltyService {
 
         // Fetch images for response
         List<NoveltyImage> allImages = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(noveltyId);
-        NoveltyAssignment assignment = noveltyAssignmentRepository.findByNoveltyId(noveltyId).orElse(null);
+        NoveltyAssignment assignment = noveltyAssignmentRepository.findLatestByNoveltyId(noveltyId).orElse(null);
         
         return mapToResponse(novelty, allImages, assignment);
     }
@@ -186,7 +186,7 @@ public class NoveltyService {
 
         // Fetch images and assignment for response
         List<NoveltyImage> images = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(noveltyId);
-        NoveltyAssignment assignment = noveltyAssignmentRepository.findByNoveltyId(noveltyId).orElse(null);
+        NoveltyAssignment assignment = noveltyAssignmentRepository.findLatestByNoveltyId(noveltyId).orElse(null);
         
         return mapToResponse(novelty, images, assignment);
     }
@@ -220,7 +220,7 @@ public class NoveltyService {
 
         // Fetch images and assignment for response
         List<NoveltyImage> images = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(noveltyId);
-        NoveltyAssignment assignment = noveltyAssignmentRepository.findByNoveltyId(noveltyId).orElse(null);
+        NoveltyAssignment assignment = noveltyAssignmentRepository.findLatestByNoveltyId(noveltyId).orElse(null);
         
         return mapToResponse(novelty, images, assignment);
     }
@@ -261,7 +261,7 @@ public class NoveltyService {
 
         // Fetch images and assignment for response
         List<NoveltyImage> images = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(noveltyId);
-        NoveltyAssignment assignment = noveltyAssignmentRepository.findByNoveltyId(noveltyId).orElse(null);
+        NoveltyAssignment assignment = noveltyAssignmentRepository.findLatestByNoveltyId(noveltyId).orElse(null);
         
         return mapToResponse(novelty, images, assignment);
     }
@@ -293,7 +293,7 @@ public class NoveltyService {
 
         // Fetch images and assignment for response
         List<NoveltyImage> images = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(noveltyId);
-        NoveltyAssignment assignment = noveltyAssignmentRepository.findByNoveltyId(noveltyId).orElse(null);
+        NoveltyAssignment assignment = noveltyAssignmentRepository.findLatestByNoveltyId(noveltyId).orElse(null);
         
         return mapToResponse(novelty, images, assignment);
     }
@@ -404,7 +404,7 @@ public class NoveltyService {
     
     private NoveltyResponse mapToResponse(Novelty novelty) {
         List<NoveltyImage> images = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(novelty.getId());
-        NoveltyAssignment assignment = noveltyAssignmentRepository.findByNoveltyId(novelty.getId()).orElse(null);
+        NoveltyAssignment assignment = noveltyAssignmentRepository.findLatestByNoveltyId(novelty.getId()).orElse(null);
         return mapToResponse(novelty, images, assignment);
     }
 
@@ -443,9 +443,7 @@ public class NoveltyService {
         response.setImages(imageDetails);
 
         // Load assignment if exists
-        noveltyAssignmentRepository.findByNoveltyIdOrderByAssignedAtDesc(novelty.getId())
-                .stream()
-                .findFirst()
+        noveltyAssignmentRepository.findLatestByNoveltyId(novelty.getId())
                 .ifPresent(response::setAssignment);
 
         return response;

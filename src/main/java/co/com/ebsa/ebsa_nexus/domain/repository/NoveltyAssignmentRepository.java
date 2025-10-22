@@ -40,33 +40,15 @@ public interface NoveltyAssignmentRepository {
     List<NoveltyAssignment> findByNoveltyIdOrderByAssignedAtDesc(Long noveltyId);
     
     /**
-     * Find assignment by novelty ID (latest assignment).
+     * Obtiene la última asignación de una novedad.
      * 
      * @param noveltyId ID de la novedad
      * @return Optional con la última asignación si existe
      */
-    default Optional<NoveltyAssignment> findByNoveltyId(Long noveltyId) {
-        return findByNoveltyIdOrderByAssignedAtDesc(noveltyId).stream().findFirst();
-    }
+    Optional<NoveltyAssignment> findLatestByNoveltyId(Long noveltyId);
     
     /**
-     * Obtiene la asignación activa de una novedad.
-     * 
-     * @param noveltyId ID de la novedad
-     * @return Optional con la asignación activa si existe
-     */
-    Optional<NoveltyAssignment> findActiveByNoveltyId(Long noveltyId);
-    
-    /**
-     * Obtiene todas las asignaciones activas de una cuadrilla.
-     * 
-     * @param crewId ID de la cuadrilla
-     * @return Lista de asignaciones activas
-     */
-    List<NoveltyAssignment> findActiveByCrewId(Long crewId);
-    
-    /**
-     * Obtiene todas las asignaciones (activas e inactivas) de una cuadrilla.
+     * Obtiene todas las asignaciones de una cuadrilla.
      * 
      * @param crewId ID de la cuadrilla
      * @return Lista de todas las asignaciones
@@ -79,29 +61,13 @@ public interface NoveltyAssignmentRepository {
      * @param userId ID del usuario que hizo las asignaciones
      * @return Lista de asignaciones
      */
-    List<NoveltyAssignment> findByAssignedById(Long userId);
+    List<NoveltyAssignment> findByAssignedByUserId(Long userId);
     
     /**
-     * Desactiva todas las asignaciones activas de una novedad.
-     * Útil para reasignaciones.
-     * 
-     * @param noveltyId ID de la novedad
-     */
-    void deactivateAllByNoveltyId(Long noveltyId);
-    
-    /**
-     * Verifica si una novedad tiene asignación activa.
-     * 
-     * @param noveltyId ID de la novedad
-     * @return true si tiene asignación activa, false en caso contrario
-     */
-    boolean existsActiveByNoveltyId(Long noveltyId);
-    
-    /**
-     * Cuenta asignaciones activas de una cuadrilla.
+     * Cuenta todas las asignaciones de una cuadrilla.
      * 
      * @param crewId ID de la cuadrilla
-     * @return Número de asignaciones activas
+     * @return Número de asignaciones
      */
-    long countActiveByCrewId(Long crewId);
+    long countByCrewId(Long crewId);
 }

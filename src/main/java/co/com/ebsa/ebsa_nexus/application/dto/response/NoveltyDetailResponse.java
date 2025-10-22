@@ -1,4 +1,4 @@
-﻿package co.com.ebsa.ebsa_nexus.application.dto.response;
+package co.com.ebsa.ebsa_nexus.application.dto.response;
 
 import co.com.ebsa.ebsa_nexus.domain.entity.NoveltyAssignment;
 import co.com.ebsa.ebsa_nexus.domain.enums.NoveltyReason;

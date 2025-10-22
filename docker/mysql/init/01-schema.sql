@@ -112,42 +112,45 @@ CREATE TABLE IF NOT EXISTS `Location` (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `novelties` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `novelty_uuid` VARCHAR(45) NOT NULL,
-  `area_id` BIGINT UNSIGNED NOT NULL,
-  `status` ENUM('CREATED', 'IN_PROGRESS', 'COMPLETED', 'CLOSED', 'CANCELLED') NOT NULL DEFAULT 'CREATED',
-  `reason` ENUM('READING_ERROR', 'DATA_UPDATE', 'OTHER') NOT NULL,
-  `created_by` BIGINT UNSIGNED NOT NULL,
+  `crew_id` BIGINT UNSIGNED NOT NULL,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'REPORTED',
+  `reason` VARCHAR(50) NOT NULL,
   `description` TEXT NOT NULL,
-  `account_number` VARCHAR(50) NOT NULL,
-  `meter_number` VARCHAR(50) NOT NULL,
-  `active_reading` DECIMAL(10,2) NOT NULL,
-  `reactive_reading` DECIMAL(10,2) NOT NULL,
-  `municipality` VARCHAR(100) NOT NULL,
-  `address` VARCHAR(255) NULL,
-  `observations` TEXT NULL,
-  `is_offline` TINYINT(1) NOT NULL DEFAULT 0,
+  `location` VARCHAR(255) NOT NULL,
+  `reported_by_user_id` BIGINT UNSIGNED NOT NULL,
+  `reported_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `resolved_by_user_id` BIGINT UNSIGNED NULL,
+  `resolved_at` DATETIME NULL,
+  `resolution_notes` TEXT NULL,
+  `verified_by_user_id` BIGINT UNSIGNED NULL,
+  `verified_at` DATETIME NULL,
+  `verification_notes` TEXT NULL,
+  `cancellation_reason` TEXT NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `completed_at` DATETIME NULL,
-  `closed_at` DATETIME NULL,
-  `cancelled_at` DATETIME NULL,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `novelty_uuid_UNIQUE` (`novelty_uuid` ASC),
-  INDEX `idx_novelties_area` (`area_id` ASC),
   INDEX `idx_novelties_status` (`status` ASC),
+  INDEX `idx_novelties_crew_id` (`crew_id` ASC),
   INDEX `idx_novelties_reason` (`reason` ASC),
-  INDEX `idx_novelties_created_by` (`created_by` ASC),
-  INDEX `idx_novelties_account_number` (`account_number` ASC),
-  INDEX `idx_novelties_meter_number` (`meter_number` ASC),
-  INDEX `idx_novelties_municipality` (`municipality` ASC),
-  INDEX `idx_novelties_created_at` (`created_at` ASC),
-  CONSTRAINT `fk_novelties_area`
-    FOREIGN KEY (`area_id`)
-    REFERENCES `areas` (`id`)
+  INDEX `idx_novelties_reported_by` (`reported_by_user_id` ASC),
+  INDEX `idx_novelties_reported_at` (`reported_at` ASC),
+  CONSTRAINT `fk_novelties_crew`
+    FOREIGN KEY (`crew_id`)
+    REFERENCES `crews` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_novelties_created_by`
-    FOREIGN KEY (`created_by`)
+  CONSTRAINT `fk_novelties_reported_by`
+    FOREIGN KEY (`reported_by_user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_novelties_resolved_by`
+    FOREIGN KEY (`resolved_by_user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_novelties_verified_by`
+    FOREIGN KEY (`verified_by_user_id`)
     REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
@@ -236,30 +239,28 @@ CREATE TABLE IF NOT EXISTS `crew_members` (
 CREATE TABLE IF NOT EXISTS `novelty_assignments` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `novelty_id` BIGINT UNSIGNED NOT NULL,
-  `crew_id` BIGINT UNSIGNED NOT NULL,
-  `assigned_by` BIGINT UNSIGNED NOT NULL,
-  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
-  `notes` TEXT NULL,
+  `assigned_crew_id` BIGINT UNSIGNED NOT NULL,
+  `assigned_by_user_id` BIGINT UNSIGNED NOT NULL,
+  `instructions` TEXT NULL,
+  `priority` VARCHAR(20) NULL,
+  `estimated_resolution_date` DATE NULL,
   `assigned_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX `idx_assignments_novelty_id` (`novelty_id` ASC),
-  INDEX `idx_assignments_crew_id` (`crew_id` ASC),
-  INDEX `idx_assignments_is_active` (`is_active` ASC),
-  INDEX `idx_assignments_assigned_by` (`assigned_by` ASC),
+  INDEX `idx_assignments_crew_id` (`assigned_crew_id` ASC),
+  INDEX `idx_assignments_assigned_by` (`assigned_by_user_id` ASC),
   CONSTRAINT `fk_assignments_novelty`
     FOREIGN KEY (`novelty_id`)
     REFERENCES `novelties` (`id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_assignments_crew`
-    FOREIGN KEY (`crew_id`)
+    FOREIGN KEY (`assigned_crew_id`)
     REFERENCES `crews` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_assignments_assigned_by`
-    FOREIGN KEY (`assigned_by`)
+    FOREIGN KEY (`assigned_by_user_id`)
     REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
@@ -272,18 +273,18 @@ CREATE TABLE IF NOT EXISTS `novelty_images` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `novelty_id` BIGINT UNSIGNED NOT NULL,
   `image_url` VARCHAR(500) NOT NULL,
-  `uploaded_by` BIGINT UNSIGNED NOT NULL,
+  `uploaded_by_user_id` BIGINT UNSIGNED NOT NULL,
   `uploaded_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX `idx_novelty_images_novelty_id` (`novelty_id` ASC),
-  INDEX `idx_novelty_images_uploaded_by` (`uploaded_by` ASC),
+  INDEX `idx_novelty_images_uploaded_by` (`uploaded_by_user_id` ASC),
   CONSTRAINT `fk_novelty_images_novelty`
     FOREIGN KEY (`novelty_id`)
     REFERENCES `novelties` (`id`)
     ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_novelty_images_uploaded_by`
-    FOREIGN KEY (`uploaded_by`)
+    FOREIGN KEY (`uploaded_by_user_id`)
     REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
@@ -363,6 +364,46 @@ CREATE TABLE IF NOT EXISTS `notifications` (
     ON DELETE SET NULL
     ON UPDATE NO ACTION
 ) ENGINE = InnoDB;
+
+-- =====================================================
+-- MIGRACIONES: Agregar columnas faltantes si no existen
+-- =====================================================
+
+-- Agregar is_read a notifications si no existe
+SET @dbname = DATABASE();
+SET @tablename = "notifications";
+SET @columnname = "is_read";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  "SELECT 1",
+  CONCAT("ALTER TABLE ", @tablename, " ADD COLUMN ", @columnname, " TINYINT(1) NOT NULL DEFAULT 0 AFTER message")
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
+
+-- Agregar índice is_read si no existe
+SET @indexname = "idx_notifications_is_read";
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (index_name = @indexname)
+  ) > 0,
+  "SELECT 1",
+  CONCAT("CREATE INDEX ", @indexname, " ON ", @tablename, " (", @columnname, ")")
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- =====================================================
 -- Restaurar configuraciones originales

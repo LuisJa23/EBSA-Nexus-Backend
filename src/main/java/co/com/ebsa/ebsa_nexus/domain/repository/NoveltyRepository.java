@@ -41,15 +41,6 @@ public interface NoveltyRepository {
     Optional<Novelty> findById(Long id);
     
     /**
-     * Busca una novedad por su UUID.
-     * 
-     * @param uuid UUID de la novedad
-     * @return Optional con la novedad si existe
-     * @throws IllegalArgumentException si uuid es null o vacío
-     */
-    Optional<Novelty> findByNoveltyUuid(String uuid);
-    
-    /**
      * Obtiene todas las novedades con paginación.
      * 
      * @param pageable Configuración de paginación
@@ -67,15 +58,6 @@ public interface NoveltyRepository {
     Page<Novelty> findByStatus(NoveltyStatus status, Pageable pageable);
     
     /**
-     * Obtiene novedades filtradas por área con paginación.
-     * 
-     * @param areaId ID del área
-     * @param pageable Configuración de paginación
-     * @return Página de novedades de esa área
-     */
-    Page<Novelty> findByAreaId(Long areaId, Pageable pageable);
-    
-    /**
      * Obtiene novedades creadas por un usuario específico.
      * 
      * @param userId ID del usuario creador
@@ -83,15 +65,6 @@ public interface NoveltyRepository {
      * @return Página de novedades creadas por ese usuario
      */
     Page<Novelty> findByCreatedById(Long userId, Pageable pageable);
-    
-    /**
-     * Obtiene novedades asignadas a las cuadrillas donde el usuario es miembro.
-     * 
-     * @param userId ID del usuario
-     * @param pageable Configuración de paginación
-     * @return Página de novedades asignadas a las cuadrillas del usuario
-     */
-    Page<Novelty> findNoveltiesAssignedToUser(Long userId, Pageable pageable);
     
     /**
      * Obtiene novedades filtradas por múltiples criterios.
@@ -151,35 +124,12 @@ public interface NoveltyRepository {
     List<Novelty> findByCrewIdAndReportedAtBetween(Long crewId, LocalDateTime startDateTime, LocalDateTime endDateTime);
     
     /**
-     * Obtiene novedades creadas sin conexión (offline).
-     * 
-     * @return Lista de novedades offline
-     */
-    List<Novelty> findOfflineNovelties();
-    
-    /**
      * Cuenta novedades por estado.
      * 
      * @param status Estado a contar
      * @return Número de novedades en ese estado
      */
     long countByStatus(NoveltyStatus status);
-    
-    /**
-     * Cuenta novedades por área.
-     * 
-     * @param areaId ID del área
-     * @return Número de novedades de esa área
-     */
-    long countByAreaId(Long areaId);
-    
-    /**
-     * Verifica si existe una novedad con el UUID dado.
-     * 
-     * @param uuid UUID de la novedad
-     * @return true si existe, false en caso contrario
-     */
-    boolean existsByNoveltyUuid(String uuid);
     
     /**
      * Verifica si existe una novedad con el ID dado.
