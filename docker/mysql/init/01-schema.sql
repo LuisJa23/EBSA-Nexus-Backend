@@ -238,11 +238,18 @@ CREATE TABLE IF NOT EXISTS `novelty_assignments` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `novelty_id` BIGINT UNSIGNED NOT NULL,
   `assigned_crew_id` BIGINT UNSIGNED NOT NULL,
+  `crew_id` BIGINT UNSIGNED NOT NULL,
   `assigned_by_user_id` BIGINT UNSIGNED NOT NULL,
+  `assigned_by` BIGINT UNSIGNED NOT NULL,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
   `instructions` TEXT NULL,
+  `notes` TEXT NULL,
   `priority` VARCHAR(20) NULL,
   `estimated_resolution_date` DATE NULL,
   `assigned_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `started_at` DATETIME NULL,
+  `completed_at` DATETIME NULL,
+  `cancelled_at` DATETIME NULL,
   PRIMARY KEY (`id`),
   INDEX `idx_assignments_novelty_id` (`novelty_id` ASC),
   INDEX `idx_assignments_crew_id` (`assigned_crew_id` ASC),
@@ -257,8 +264,18 @@ CREATE TABLE IF NOT EXISTS `novelty_assignments` (
     REFERENCES `crews` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
+  CONSTRAINT `fk_assignments_crew_alt`
+    FOREIGN KEY (`crew_id`)
+    REFERENCES `crews` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
   CONSTRAINT `fk_assignments_assigned_by`
     FOREIGN KEY (`assigned_by_user_id`)
+    REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_assignments_assigned_by_alt`
+    FOREIGN KEY (`assigned_by`)
     REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
