@@ -74,12 +74,12 @@ public class NoveltyRepositoryAdapter implements NoveltyRepository {
             NoveltyStatus status,
             String reason,
             Long crewId,
-            Long reportedByUserId,
+            Long createdBy,
             LocalDateTime startDate,
             LocalDateTime endDate,
             Pageable pageable) {
         return jpaNoveltyRepository.findByFilters(
-                status, reason, crewId, reportedByUserId, startDate, endDate, pageable);
+                status, reason, crewId, createdBy, startDate, endDate, pageable);
     }
 
     @Override

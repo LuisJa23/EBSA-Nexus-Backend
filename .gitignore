@@ -94,3 +94,10 @@ docker-compose.log
 *.docker.log
 
 EBSA-Nexus-Integration-Tests.postman_collection.json
+
+# ===========================================
+# FIREBASE CREDENTIALS - NEVER COMMIT
+# ===========================================
+src/main/resources/firebase-service-account.json
+**/firebase-service-account.json
+firebase-adminsdk-*.json

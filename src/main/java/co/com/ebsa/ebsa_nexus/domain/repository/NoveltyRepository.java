@@ -72,7 +72,7 @@ public interface NoveltyRepository {
      * @param status Estado (opcional)
      * @param reason Razón (opcional)
      * @param crewId ID de la cuadrilla (opcional)
-     * @param reportedByUserId ID del usuario que reportó (opcional)
+     * @param createdBy ID del usuario que creó la novedad (opcional)
      * @param startDate Fecha inicio (opcional)
      * @param endDate Fecha fin (opcional)
      * @param pageable Configuración de paginación
@@ -82,7 +82,7 @@ public interface NoveltyRepository {
         NoveltyStatus status,
         String reason,
         Long crewId,
-        Long reportedByUserId,
+        Long createdBy,
         LocalDateTime startDate,
         LocalDateTime endDate,
         Pageable pageable

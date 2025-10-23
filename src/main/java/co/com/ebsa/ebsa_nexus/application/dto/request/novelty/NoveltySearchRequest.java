@@ -25,7 +25,7 @@ public class NoveltySearchRequest {
     private String status;
     private String reason;
     private Long crewId;
-    private Long reportedByUserId;
+    private Long createdBy;
     
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime startDate;
@@ -40,7 +40,7 @@ public class NoveltySearchRequest {
     private Integer size = 20;
     
     @Builder.Default
-    private String sortBy = "reportedAt";
+    private String sortBy = "createdAt";
     
     @Builder.Default
     private String sortDirection = "DESC";

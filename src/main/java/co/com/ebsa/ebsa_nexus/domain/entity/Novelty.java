@@ -73,9 +73,6 @@ public class Novelty {
     @Column(length = 255)
     private String address;
     
-    @Column(nullable = false, length = 255)
-    private String location;
-    
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
     
@@ -88,18 +85,14 @@ public class Novelty {
     @Builder.Default
     private NoveltyStatus status = NoveltyStatus.CREADA;
     
-    @Column(name = "reported_by_user_id", nullable = false)
-    private Long createdBy;
-    
-    // Campo adicional requerido por la BD (mismo valor que createdBy)
     @Column(name = "created_by", nullable = false)
-    private Long createdByLegacy;
+    private Long createdBy;
     
     @Column(name = "crew_id")
     private Long crewId;
     
     // Timestamps
-    @Column(name = "reported_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
     

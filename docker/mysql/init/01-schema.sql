@@ -270,7 +270,7 @@ CREATE TABLE IF NOT EXISTS `novelty_assignments` (
 CREATE TABLE IF NOT EXISTS `novelty_images` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `novelty_id` BIGINT UNSIGNED NOT NULL,
-  `image_url` VARCHAR(500) NOT NULL,
+  `image_url` TEXT NOT NULL COMMENT 'Firebase Storage signed URL (can exceed 1000 characters)',
   `uploaded_by_user_id` BIGINT UNSIGNED NOT NULL,
   `uploaded_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

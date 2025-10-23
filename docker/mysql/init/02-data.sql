@@ -376,66 +376,102 @@ INSERT INTO `Location` (`name`, `details`) VALUES
 -- INSERTAR NOVEDADES DE EJEMPLO
 -- =====================================================
 
--- Novedad 1 - Error de lectura reportado por supervisor
+-- Novedad 1 - Error de lectura
 INSERT INTO `novelties` (
-    `crew_id`,
-    `status`,
+    `area_id`,
     `reason`,
+    `account_number`,
+    `meter_number`,
+    `active_reading`,
+    `reactive_reading`,
+    `municipality`,
+    `address`,
     `description`,
-    `location`,
-    `reported_by_user_id`,
-    `reported_at`,
+    `observations`,
+    `status`,
+    `created_by`,
+    `crew_id`,
     `created_at`
 ) VALUES (
     1,
-    'REPORTED',
-    'READING_ERROR',
+    'ERROR_LECTURA',
+    'ACC-00001',
+    'MTR-00001',
+    1234.56,
+    789.01,
+    'Tunja',
+    'Zona Norte - Transformador Principal',
     'Transformador presenta sobrecalentamiento y ruidos anormales. Se requiere revisión urgente del medidor.',
-    'Zona Norte - Transformador Principal, Tunja',
+    'Prioridad alta',
+    'CREADA',
     1,
-    NOW(),
+    1,
     NOW()
 );
 
--- Novedad 2 - Actualización de datos necesaria
+-- Novedad 2 - Actualización de datos
 INSERT INTO `novelties` (
-    `crew_id`,
-    `status`,
+    `area_id`,
     `reason`,
+    `account_number`,
+    `meter_number`,
+    `active_reading`,
+    `reactive_reading`,
+    `municipality`,
+    `address`,
     `description`,
-    `location`,
-    `reported_by_user_id`,
-    `reported_at`,
+    `observations`,
+    `status`,
+    `created_by`,
+    `crew_id`,
     `created_at`
 ) VALUES (
     2,
-    'REPORTED',
-    'DATA_UPDATE',
+    'ACTUALIZACION_DATOS',
+    'ACC-00002',
+    'MTR-00002',
+    5678.90,
+    234.56,
+    'Tunja',
+    'Sector Comercial - Calle 19',
     'Revisión programada de red eléctrica en sector comercial. Actualización de datos de consumo requerida.',
-    'Sector Comercial - Calle 19, Tunja',
+    'Revisión programada',
+    'CREADA',
     2,
-    NOW(),
+    2,
     NOW()
 );
 
 -- Novedad 3 - Otro motivo
 INSERT INTO `novelties` (
-    `crew_id`,
-    `status`,
+    `area_id`,
     `reason`,
+    `account_number`,
+    `meter_number`,
+    `active_reading`,
+    `reactive_reading`,
+    `municipality`,
+    `address`,
     `description`,
-    `location`,
-    `reported_by_user_id`,
-    `reported_at`,
+    `observations`,
+    `status`,
+    `created_by`,
+    `crew_id`,
     `created_at`
 ) VALUES (
-    3,
-    'REPORTED',
-    'OTHER',
+    1,
+    'OTROS',
+    'ACC-00003',
+    'MTR-00003',
+    901.23,
+    456.78,
+    'Tunja',
+    'Nueva Instalación - Barrio Sur',
     'Cliente solicita instalación de medidor bifásico. Nueva instalación requerida en barrio residencial.',
-    'Nueva Instalación - Barrio Sur, Tunja',
+    'Nueva instalación',
+    'CREADA',
     2,
-    NOW(),
+    3,
     NOW()
 );
 

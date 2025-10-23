@@ -4,7 +4,6 @@ import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.AssignCrewRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.CreateNoveltyRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.NoveltySearchRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.ResolveNoveltyRequest;
-import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.UploadImagesRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.response.NoveltyDetailResponse;
 import co.com.ebsa.ebsa_nexus.application.dto.response.NoveltyPageResponse;
 import co.com.ebsa.ebsa_nexus.application.dto.response.NoveltyResponse;
@@ -33,38 +32,20 @@ public class NoveltyController {
 
     /**
      * Create a new novelty (Supervisor or Admin).
+     * Accepts multipart/form-data with JSON fields + image files
      * 
-     * @param request Novelty creation data
+     * @param request Novelty creation data with images
      * @param userId User ID from authentication context
      * @return Created novelty details
      */
-    @PostMapping
+    @PostMapping(consumes = {"multipart/form-data", "application/json"})
     @PreAuthorize("hasAnyRole('SUPERVISOR', 'ADMIN')")
     public ResponseEntity<NoveltyResponse> createNovelty(
-            @Valid @RequestBody CreateNoveltyRequest request,
+            @Valid @ModelAttribute CreateNoveltyRequest request,
             @RequestAttribute("userId") Long userId) {
         
         NoveltyResponse response = noveltyService.createNovelty(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    /**
-     * Upload images for a novelty.
-     * 
-     * @param noveltyId Novelty ID
-     * @param request Image URLs to upload
-     * @param userId User ID from authentication context
-     * @return Updated novelty details
-     */
-    @PostMapping("/{noveltyId}/images")
-    @PreAuthorize("hasAnyRole('SUPERVISOR', 'TRABAJADOR', 'LIDER_CUADRILLA', 'ADMIN')")
-    public ResponseEntity<NoveltyResponse> uploadImages(
-            @PathVariable Long noveltyId,
-            @Valid @RequestBody UploadImagesRequest request,
-            @RequestAttribute("userId") Long userId) {
-        
-        NoveltyResponse response = noveltyService.uploadImages(noveltyId, request, userId);
-        return ResponseEntity.ok(response);
     }
 
     /**

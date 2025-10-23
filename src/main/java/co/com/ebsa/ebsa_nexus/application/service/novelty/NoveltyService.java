@@ -2,6 +2,7 @@ package co.com.ebsa.ebsa_nexus.application.service.novelty;
 
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.AssignCrewRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.CreateNoveltyRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.ImageUploadResultDTO;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.NoveltySearchRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.UploadImagesRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.response.NoveltyDetailResponse;
@@ -11,6 +12,8 @@ import co.com.ebsa.ebsa_nexus.domain.entity.*;
 import co.com.ebsa.ebsa_nexus.domain.enums.NoveltyStatus;
 import co.com.ebsa.ebsa_nexus.domain.exception.novelty.NoveltyOperationException;
 import co.com.ebsa.ebsa_nexus.domain.repository.*;
+import co.com.ebsa.ebsa_nexus.infrastructure.storage.FirebaseStorageAdapter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional
 public class NoveltyService {
@@ -32,18 +36,21 @@ public class NoveltyService {
     private final NoveltyAssignmentRepository noveltyAssignmentRepository;
     private final NoveltyValidationService validationService;
     private final NoveltyNotificationService notificationService;
+    private final FirebaseStorageAdapter firebaseStorageAdapter;
 
     public NoveltyService(
             NoveltyRepository noveltyRepository,
             NoveltyImageRepository noveltyImageRepository,
             NoveltyAssignmentRepository noveltyAssignmentRepository,
             NoveltyValidationService validationService,
-            NoveltyNotificationService notificationService) {
+            NoveltyNotificationService notificationService,
+            FirebaseStorageAdapter firebaseStorageAdapter) {
         this.noveltyRepository = noveltyRepository;
         this.noveltyImageRepository = noveltyImageRepository;
         this.noveltyAssignmentRepository = noveltyAssignmentRepository;
         this.validationService = validationService;
         this.notificationService = notificationService;
+        this.firebaseStorageAdapter = firebaseStorageAdapter;
     }
 
     /**
@@ -64,38 +71,47 @@ public class NoveltyService {
         novelty.setReactiveReading(request.getReactiveReading());
         novelty.setMunicipality(request.getMunicipality());
         novelty.setAddress(request.getAddress());
-        
-        // Build location from municipality and address
-        String location = request.getMunicipality();
-        if (request.getAddress() != null && !request.getAddress().isBlank()) {
-            location = location + ", " + request.getAddress();
-        }
-        novelty.setLocation(location);
-        
         novelty.setDescription(request.getDescription());
         novelty.setObservations(request.getObservations());
         novelty.setCreatedBy(createdByUserId);
-        novelty.setCreatedByLegacy(createdByUserId); // Campo legacy de BD
         novelty.setStatus(NoveltyStatus.CREADA);
         novelty.setCreatedAt(LocalDateTime.now());
         novelty.setUpdatedAt(LocalDateTime.now());
 
+        // Upload images to Firebase first (if provided)
+        List<ImageUploadResultDTO> uploadResults = new ArrayList<>();
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            log.info("Uploading {} images to Firebase for novelty", request.getImages().size());
+            String folder = "novelties/" + LocalDateTime.now().getYear();
+            uploadResults = firebaseStorageAdapter.uploadImages(request.getImages(), folder);
+            
+            // Check for upload failures
+            long failedUploads = uploadResults.stream()
+                .filter(r -> !r.isSuccess())
+                .count();
+            
+            if (failedUploads > 0) {
+                log.warn("{} images failed to upload", failedUploads);
+            }
+        }
+
         // Save novelty
         Novelty savedNovelty = noveltyRepository.save(novelty);
 
-        // Save images
+        // Save image references with Firebase URLs
         List<NoveltyImage> images = new ArrayList<>();
-        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
-            for (String imageUrl : request.getImageUrls()) {
+        for (ImageUploadResultDTO result : uploadResults) {
+            if (result.isSuccess()) {
                 NoveltyImage image = new NoveltyImage();
                 image.setNoveltyId(savedNovelty.getId());
-                image.setImageUrl(imageUrl);
+                image.setImageUrl(result.getPublicUrl());
                 image.setUploadedByUserId(createdByUserId);
                 image.setUploadedAt(LocalDateTime.now());
-                images.add(image);
+                images.add(noveltyImageRepository.save(image));
             }
-            noveltyImageRepository.saveAll(images);
         }
+        
+        log.info("Saved {} images for novelty {}", images.size(), savedNovelty.getId());
 
         // Send notification to admin
         notificationService.notifyNewNovelty(savedNovelty);
@@ -371,7 +387,7 @@ public class NoveltyService {
                 statusEnum,
                 request.getReason(),
                 request.getCrewId(),
-                request.getReportedByUserId(),
+                request.getCreatedBy(),
                 request.getStartDate(),
                 request.getEndDate(),
                 pageable

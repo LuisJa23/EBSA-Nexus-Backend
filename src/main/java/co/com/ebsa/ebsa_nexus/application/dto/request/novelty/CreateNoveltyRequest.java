@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -62,7 +63,7 @@ public class CreateNoveltyRequest {
     @Size(max = 1000, message = "Las observaciones no pueden exceder 1000 caracteres")
     private String observations;
 
-    @NotNull(message = "Debe proporcionar al menos una evidencia (imagen)")
-    @Size(min = 1, max = 10, message = "Debe proporcionar entre 1 y 10 imágenes")
-    private List<@NotBlank(message = "La URL de la imagen no puede estar vacía") String> imageUrls;
+    // Archivos de imágenes para subir
+    @Size(max = 10, message = "Máximo 10 imágenes permitidas")
+    private List<MultipartFile> images;
 }

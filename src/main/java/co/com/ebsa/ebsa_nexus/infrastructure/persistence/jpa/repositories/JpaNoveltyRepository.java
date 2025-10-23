@@ -56,7 +56,7 @@ public interface JpaNoveltyRepository extends JpaRepository<Novelty, Long> {
         WHERE (:status IS NULL OR n.status = :status)
         AND (:reason IS NULL OR n.reason = :reason)
         AND (:crewId IS NULL OR n.crewId = :crewId)
-        AND (:reportedByUserId IS NULL OR n.createdBy = :reportedByUserId)
+        AND (:createdBy IS NULL OR n.createdBy = :createdBy)
         AND (:startDate IS NULL OR n.createdAt >= :startDate)
         AND (:endDate IS NULL OR n.createdAt <= :endDate)
         ORDER BY n.createdAt DESC
@@ -65,7 +65,7 @@ public interface JpaNoveltyRepository extends JpaRepository<Novelty, Long> {
         @Param("status") NoveltyStatus status,
         @Param("reason") String reason,
         @Param("crewId") Long crewId,
-        @Param("reportedByUserId") Long reportedByUserId,
+        @Param("createdBy") Long createdBy,
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate,
         Pageable pageable
