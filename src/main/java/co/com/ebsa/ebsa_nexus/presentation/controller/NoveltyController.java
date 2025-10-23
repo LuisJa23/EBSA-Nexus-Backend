@@ -3,6 +3,7 @@ package co.com.ebsa.ebsa_nexus.presentation.controller;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.AssignCrewRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.CreateNoveltyRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.NoveltySearchRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.ResolveNoveltyRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.request.novelty.UploadImagesRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.response.NoveltyDetailResponse;
 import co.com.ebsa.ebsa_nexus.application.dto.response.NoveltyPageResponse;
@@ -56,7 +57,7 @@ public class NoveltyController {
      * @return Updated novelty details
      */
     @PostMapping("/{noveltyId}/images")
-    @PreAuthorize("hasAnyRole('SUPERVISOR', 'CREW_MEMBER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'TRABAJADOR', 'LIDER_CUADRILLA', 'ADMIN')")
     public ResponseEntity<NoveltyResponse> uploadImages(
             @PathVariable Long noveltyId,
             @Valid @RequestBody UploadImagesRequest request,
@@ -93,7 +94,7 @@ public class NoveltyController {
      * @return Updated novelty details
      */
     @PutMapping("/{noveltyId}/start")
-    @PreAuthorize("hasRole('CREW_MEMBER')")
+    @PreAuthorize("hasAnyRole('TRABAJADOR', 'LIDER_CUADRILLA')")
     public ResponseEntity<NoveltyResponse> startProgress(
             @PathVariable Long noveltyId,
             @RequestAttribute("userId") Long userId) {
@@ -106,18 +107,18 @@ public class NoveltyController {
      * Mark novelty as resolved (Assigned crew only).
      * 
      * @param noveltyId Novelty ID
-     * @param resolutionNotes Resolution notes
+     * @param request Resolution notes request
      * @param userId User ID from authentication context
      * @return Updated novelty details
      */
     @PutMapping("/{noveltyId}/resolve")
-    @PreAuthorize("hasRole('CREW_MEMBER')")
+    @PreAuthorize("hasAnyRole('TRABAJADOR', 'LIDER_CUADRILLA')")
     public ResponseEntity<NoveltyResponse> resolveNovelty(
             @PathVariable Long noveltyId,
-            @RequestParam String resolutionNotes,
+            @Valid @RequestBody ResolveNoveltyRequest request,
             @RequestAttribute("userId") Long userId) {
         
-        NoveltyResponse response = noveltyService.resolveNovelty(noveltyId, resolutionNotes, userId);
+        NoveltyResponse response = noveltyService.resolveNovelty(noveltyId, request.getResolutionNotes(), userId);
         return ResponseEntity.ok(response);
     }
 
@@ -169,7 +170,7 @@ public class NoveltyController {
      * @return Novelty details
      */
     @GetMapping("/{noveltyId}")
-    @PreAuthorize("hasAnyRole('SUPERVISOR', 'CREW_MEMBER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'TRABAJADOR', 'LIDER_CUADRILLA', 'ADMIN')")
     public ResponseEntity<NoveltyDetailResponse> getNoveltyById(
             @PathVariable Long noveltyId,
             @RequestAttribute("userId") Long userId) {
@@ -186,7 +187,7 @@ public class NoveltyController {
      * @return Paginated novelty list
      */
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('SUPERVISOR', 'CREW_MEMBER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPERVISOR', 'TRABAJADOR', 'LIDER_CUADRILLA', 'ADMIN')")
     public ResponseEntity<NoveltyPageResponse> searchNovelties(
             @ModelAttribute NoveltySearchRequest request,
             @RequestAttribute("userId") Long userId) {
@@ -202,7 +203,7 @@ public class NoveltyController {
      * @return List of novelties for the crew
      */
     @GetMapping("/crew/{crewId}")
-    @PreAuthorize("hasAnyRole('CREW_MEMBER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TRABAJADOR', 'LIDER_CUADRILLA', 'SUPERVISOR', 'ADMIN')")
     public ResponseEntity<java.util.List<NoveltyResponse>> getNoveltyByCrew(
             @PathVariable Long crewId) {
         
