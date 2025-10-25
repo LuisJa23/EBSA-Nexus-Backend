@@ -1,10 +1,9 @@
 package co.com.ebsa.ebsa_nexus.presentation.controller;
 
-import co.com.ebsa.ebsa_nexus.application.dto.response.UserResponse;
+
 import co.com.ebsa.ebsa_nexus.application.dto.response.UserWorkerResponse;
-import co.com.ebsa.ebsa_nexus.application.service.UserManagementService;
-import co.com.ebsa.ebsa_nexus.infrastructure.repository.UserRepository;
 import co.com.ebsa.ebsa_nexus.domain.entity.User;
+import co.com.ebsa.ebsa_nexus.infrastructure.persistence.jpa.repositories.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

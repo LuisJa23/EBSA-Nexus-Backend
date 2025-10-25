@@ -1,8 +1,9 @@
 package co.com.ebsa.ebsa_nexus.presentation.controller;
 
-import co.com.ebsa.ebsa_nexus.application.dto.request.CreateUserRequest;
-import co.com.ebsa.ebsa_nexus.application.dto.request.UpdateOwnProfileRequest;
-import co.com.ebsa.ebsa_nexus.application.dto.request.UpdateUserRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.ChangePasswordRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.CreateUserRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.UpdateOwnProfileRequest;
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.UpdateUserRequest;
 import co.com.ebsa.ebsa_nexus.application.dto.response.UserResponse;
 import co.com.ebsa.ebsa_nexus.application.service.UserManagementService;
 import jakarta.validation.Valid;
@@ -43,7 +44,7 @@ public class UserManagementController {
     @PutMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> updateUser(
-            @PathVariable Integer userId,
+            @PathVariable Long userId,
             @Valid @RequestBody UpdateUserRequest request,
             Authentication authentication) {
         
@@ -57,7 +58,7 @@ public class UserManagementController {
     @PatchMapping("/{userId}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deactivateUser(
-            @PathVariable Integer userId,
+            @PathVariable Long userId,
             Authentication authentication) {
         
         log.info("Deactivating user request received for ID: {} by admin: {}", 
@@ -70,7 +71,7 @@ public class UserManagementController {
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> getUserById(
-            @PathVariable Integer userId,
+            @PathVariable Long userId,
             Authentication authentication) {
         
         log.debug("Get user by ID request received for ID: {} by admin: {}", 
@@ -93,6 +94,19 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/available-for-crew")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<UserResponse>> getAvailableUsers(
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable,
+            Authentication authentication) {
+        
+        log.debug("Get available users request received by admin: {} with pageable: {}", 
+                authentication.getName(), pageable);
+                
+        Page<UserResponse> response = userManagementService.getAvailableUsers(pageable, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
         log.info("User requesting own profile data: {}", authentication.getName());
@@ -110,5 +124,26 @@ public class UserManagementController {
         
         UserResponse response = userManagementService.updateOwnProfile(request, authentication.getName());
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Endpoint para cambiar la contraseña del usuario autenticado.
+     * El usuario debe estar autenticado (cualquier rol).
+     * Se requiere la contraseña actual para validación de seguridad.
+     * 
+     * @param request contiene contraseña actual, nueva y confirmación
+     * @param authentication contiene el email del usuario autenticado (extraído del JWT)
+     * @return 204 No Content si el cambio fue exitoso
+     */
+        @PatchMapping("/me/change-password")
+    public ResponseEntity<Void> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            Authentication authentication) {
+        
+        log.info("User requesting password change: {}", authentication.getName());
+        
+        userManagementService.changePassword(request, authentication.getName());
+        
+        return ResponseEntity.noContent().build();
     }
 }

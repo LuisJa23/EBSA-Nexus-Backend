@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import co.com.ebsa.ebsa_nexus.domain.entity.Area;
-import co.com.ebsa.ebsa_nexus.infrastructure.repository.AreaRepository;
+import co.com.ebsa.ebsa_nexus.infrastructure.persistence.jpa.repositories.AreaRepository;
+
+
 
 @RestController
 @RequestMapping("/api/areas")

@@ -28,7 +28,7 @@ public interface UserDomainRepository {
      * @param id ID del usuario
      * @return Optional conteniendo el usuario si existe
      */
-    Optional<User> findById(Integer id);
+    Optional<User> findById(Long id);
     
     /**
      * Busca un usuario activo por su email.
@@ -93,7 +93,7 @@ public interface UserDomainRepository {
      * @param id ID del usuario a excluir de la búsqueda
      * @return true si existe otro usuario con ese email, false en caso contrario
      */
-    boolean existsByEmailAndIdNot(String email, Integer id);
+    boolean existsByEmailAndIdNot(String email, Long id);
     
     /**
      * Verifica si existe un usuario con el username dado, excluyendo un usuario específico.
@@ -102,7 +102,7 @@ public interface UserDomainRepository {
      * @param id ID del usuario a excluir de la búsqueda
      * @return true si existe otro usuario con ese username, false en caso contrario
      */
-    boolean existsByUsernameAndIdNot(String username, Integer id);
+    boolean existsByUsernameAndIdNot(String username, Long id);
     
     /**
      * Verifica si existe un usuario con el número de documento dado.
@@ -119,7 +119,7 @@ public interface UserDomainRepository {
      * @param id ID del usuario a excluir de la búsqueda
      * @return true si existe otro usuario con ese documento, false en caso contrario
      */
-    boolean existsByDocumentNumberAndIdNot(String documentNumber, Integer id);
+    boolean existsByDocumentNumberAndIdNot(String documentNumber, Long id);
     
     /**
      * Verifica si existe un usuario con el teléfono dado.
@@ -136,7 +136,14 @@ public interface UserDomainRepository {
      * @param id ID del usuario a excluir de la búsqueda
      * @return true si existe otro usuario con ese teléfono, false en caso contrario
      */
-    boolean existsByPhoneAndIdNot(String phone, Integer id);
+    boolean existsByPhoneAndIdNot(String phone, Long id);
+    
+    /**
+     * Encuentra usuarios que no están asignados a ningún equipo activo.
+     * 
+     * @return Lista de usuarios sin equipo activo
+     */
+    List<User> findUsersWithoutActiveCrew();
     
     /**
      * Elimina un usuario del repositorio.

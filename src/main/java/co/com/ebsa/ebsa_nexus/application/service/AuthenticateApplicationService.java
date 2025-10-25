@@ -2,11 +2,12 @@ package co.com.ebsa.ebsa_nexus.application.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import co.com.ebsa.ebsa_nexus.application.dto.request.LoginRequestDTO;
+
+import co.com.ebsa.ebsa_nexus.application.dto.request.auth.LoginRequestDTO;
 import co.com.ebsa.ebsa_nexus.application.dto.response.LoginResponseDTO;
 import co.com.ebsa.ebsa_nexus.domain.entity.User;
-import co.com.ebsa.ebsa_nexus.domain.exception.AuthenticationException;
-import co.com.ebsa.ebsa_nexus.infrastructure.repository.UserRepository;
+import co.com.ebsa.ebsa_nexus.domain.exception.auth.AuthenticationException;
+import co.com.ebsa.ebsa_nexus.infrastructure.persistence.jpa.repositories.UserRepository;
 import co.com.ebsa.ebsa_nexus.infrastructure.utils.JwtUtil;
 import java.time.LocalDateTime;
 
@@ -45,7 +46,7 @@ public class AuthenticateApplicationService {
             // Convertir WorkType enum a string (intern o extern en minúsculas)
             String workType = user.getWorkType() != null ? user.getWorkType().name() : null;
             
-            String token = jwtUtil.generateToken(user.getEmail(), roleName);
+            String token = jwtUtil.generateToken(user.getEmail(), roleName, user.getId());
             
             return new LoginResponseDTO(
                 user.getId(), 

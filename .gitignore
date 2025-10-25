@@ -81,12 +81,7 @@ Dockerfile
 docker-compose.yml
 docker-compose.*.yml
 
-# Directorio Docker completo
-docker/
 
-# Scripts SQL originales
-physicalScheme.sql
-*.sql
 
 # Variables de entorno locales
 .env
@@ -99,3 +94,10 @@ docker-compose.log
 *.docker.log
 
 EBSA-Nexus-Integration-Tests.postman_collection.json
+
+# ===========================================
+# FIREBASE CREDENTIALS - NEVER COMMIT
+# ===========================================
+src/main/resources/firebase-service-account.json
+**/firebase-service-account.json
+firebase-adminsdk-*.json
