@@ -47,7 +47,11 @@ public class SecurityConfig {
                     "/api/public/**",
                     "/areas",
                     "/api/work-roles",
-                    "/api/work-roles/**" // Permitir acceso público a todos los endpoints de work-roles
+                    "/api/work-roles/**", // Permitir acceso público a todos los endpoints de work-roles
+                    "/api/v1/notifications",
+                    "/api/v1/notifications/**", // Permitir acceso público a notificaciones (para pruebas)
+                    "/api/v1/novelties",
+                    "/api/v1/novelties/**" // Permitir acceso público a novedades (para pruebas)
                 ).permitAll()
                 .requestMatchers("/api/users/me").authenticated()  // Permitir a cualquier usuario autenticado
                 .requestMatchers("/api/users/**").hasRole("ADMIN") // Solo ADMIN para el resto de endpoints

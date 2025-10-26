@@ -476,6 +476,164 @@ INSERT INTO `novelties` (
 );
 
 -- =====================================================
+-- INSERTAR NOTIFICACIONES DE EJEMPLO
+-- =====================================================
+
+-- Notificación 1 - Nueva novedad asignada al líder de cuadrilla Alpha
+INSERT INTO `notifications` (
+    `user_id`,
+    `title`,
+    `message`,
+    `type`,
+    `priority`,
+    `is_read`,
+    `created_at`
+) VALUES (
+    3,
+    'Nueva Novedad Asignada',
+    'Se ha asignado una nueva novedad a tu cuadrilla Alpha: Error de lectura en Zona Norte - Transformador Principal. Prioridad: Alta',
+    'NOVELTY_ASSIGNED',
+    'HIGH',
+    0,
+    NOW()
+);
+
+-- Notificación 2 - Actualización de estado de novedad para supervisor
+INSERT INTO `notifications` (
+    `user_id`,
+    `title`,
+    `message`,
+    `type`,
+    `priority`,
+    `is_read`,
+    `created_at`
+) VALUES (
+    2,
+    'Novedad en Progreso',
+    'La novedad ACC-00001 ha sido aceptada por la Cuadrilla Alpha y está en progreso.',
+    'NOVELTY_UPDATE',
+    'MEDIUM',
+    0,
+    NOW()
+);
+
+-- Notificación 3 - Nueva novedad para líder de cuadrilla Beta
+INSERT INTO `notifications` (
+    `user_id`,
+    `title`,
+    `message`,
+    `type`,
+    `priority`,
+    `is_read`,
+    `created_at`
+) VALUES (
+    6,
+    'Nueva Novedad Asignada',
+    'Se ha asignado una nueva novedad a tu cuadrilla Beta: Revisión programada en Sector Comercial - Calle 19.',
+    'NOVELTY_ASSIGNED',
+    'MEDIUM',
+    0,
+    NOW()
+);
+
+-- Notificación 4 - Notificación general para todos los trabajadores
+INSERT INTO `notifications` (
+    `user_id`,
+    `title`,
+    `message`,
+    `type`,
+    `priority`,
+    `is_read`,
+    `created_at`
+) VALUES (
+    4,
+    'Recordatorio de Capacitación',
+    'Recuerda asistir a la capacitación de seguridad industrial programada para el próximo lunes a las 8:00 AM.',
+    'SYSTEM',
+    'LOW',
+    0,
+    NOW()
+);
+
+-- Notificación 5 - Notificación leída por administrador
+INSERT INTO `notifications` (
+    `user_id`,
+    `title`,
+    `message`,
+    `type`,
+    `priority`,
+    `is_read`,
+    `read_at`,
+    `created_at`
+) VALUES (
+    1,
+    'Sistema Actualizado',
+    'El sistema EBSA Nexus ha sido actualizado exitosamente a la versión 2.0. Nuevas funcionalidades disponibles.',
+    'SYSTEM',
+    'MEDIUM',
+    1,
+    NOW(),
+    DATE_SUB(NOW(), INTERVAL 1 DAY)
+);
+
+-- Notificación 6 - Novedad completada para supervisor
+INSERT INTO `notifications` (
+    `user_id`,
+    `title`,
+    `message`,
+    `type`,
+    `priority`,
+    `is_read`,
+    `created_at`
+) VALUES (
+    2,
+    'Novedad Completada',
+    'La Cuadrilla Alpha ha completado la novedad ACC-00001 satisfactoriamente. Verificación pendiente.',
+    'NOVELTY_COMPLETED',
+    'HIGH',
+    0,
+    NOW()
+);
+
+-- Notificación 7 - Notificación para trabajador sobre nueva herramienta
+INSERT INTO `notifications` (
+    `user_id`,
+    `title`,
+    `message`,
+    `type`,
+    `priority`,
+    `is_read`,
+    `created_at`
+) VALUES (
+    5,
+    'Nuevas Herramientas Disponibles',
+    'Se han recibido nuevas herramientas de seguridad. Pasa por el almacén a recoger tu equipo actualizado.',
+    'SYSTEM',
+    'MEDIUM',
+    0,
+    NOW()
+);
+
+-- Notificación 8 - Alerta para electricista
+INSERT INTO `notifications` (
+    `user_id`,
+    `title`,
+    `message`,
+    `type`,
+    `priority`,
+    `is_read`,
+    `created_at`
+) VALUES (
+    7,
+    'Alerta de Mantenimiento',
+    'Tu cuadrilla Beta tiene un mantenimiento programado para mañana. Revisa los detalles en la aplicación.',
+    'NOVELTY_ASSIGNED',
+    'HIGH',
+    0,
+    NOW()
+);
+
+-- =====================================================
 -- Reactivar restricciones de claves foráneas
 -- =====================================================
 SET FOREIGN_KEY_CHECKS=1;
@@ -501,7 +659,9 @@ SELECT 'MIEMBROS DE CUADRILLAS', COUNT(*) FROM `crew_members`
 UNION ALL
 SELECT 'UBICACIONES', COUNT(*) FROM `Location`
 UNION ALL
-SELECT 'NOVEDADES', COUNT(*) FROM `novelties`;
+SELECT 'NOVEDADES', COUNT(*) FROM `novelties`
+UNION ALL
+SELECT 'NOTIFICACIONES', COUNT(*) FROM `notifications`;
 
 SELECT '=====================================' as '';
 SELECT '=== DETALLE DE CUADRILLAS ===' as '';

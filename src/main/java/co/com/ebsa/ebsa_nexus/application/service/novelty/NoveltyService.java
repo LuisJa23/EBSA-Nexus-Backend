@@ -354,8 +354,10 @@ public class NoveltyService {
         Novelty novelty = noveltyRepository.findById(noveltyId)
                 .orElseThrow(() -> new NoveltyOperationException("Novelty not found with id: " + noveltyId));
 
-        // Validate user can view
-        validationService.validateCanView(userId, novelty);
+        // Validate user can view (skip validation if userId is null - public access)
+        if (userId != null) {
+            validationService.validateCanView(userId, novelty);
+        }
 
         return mapToDetailResponse(novelty);
     }

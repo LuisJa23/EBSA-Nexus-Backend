@@ -3,6 +3,7 @@ package co.com.ebsa.ebsa_nexus.application.service;
 import co.com.ebsa.ebsa_nexus.application.factories.IncidentAssignmentFactory;
 import co.com.ebsa.ebsa_nexus.domain.enums.AssignmentStatus;
 import co.com.ebsa.ebsa_nexus.domain.entity.Crew;
+import co.com.ebsa.ebsa_nexus.domain.entity.CrewMember;
 import co.com.ebsa.ebsa_nexus.domain.entity.IncidentAssignment;
 import co.com.ebsa.ebsa_nexus.domain.exception.crew.*;
 import co.com.ebsa.ebsa_nexus.domain.repository.CrewRepository;
@@ -48,6 +49,8 @@ public class IncidentAssignmentService {
     private final CrewRepository crewRepository;
     private final IncidentAssignmentFactory assignmentFactory;
     private final CrewService crewService;
+    private final CrewMemberService crewMemberService;
+    private final NotificationApplicationService notificationService;
     
     /**
      * Asigna un incidente a una cuadrilla.
@@ -80,6 +83,27 @@ public class IncidentAssignmentService {
         // Crear y guardar la asignación
         IncidentAssignment assignment = assignmentFactory.createAssignment(crewId, incidentId, assignedBy);
         IncidentAssignment saved = assignmentRepository.save(assignment);
+        
+        // Notificar a todos los miembros de la cuadrilla
+        try {
+            List<CrewMember> activeMembers = crewMemberService.getActiveMembers(crewId);
+            for (CrewMember member : activeMembers) {
+                String roleText = member.isLeader() ? "Tu cuadrilla" : "La cuadrilla";
+                notificationService.createNotification(
+                    member.getUserId(),
+                    "NOVELTY_ASSIGNED",
+                    "Nueva Novedad Asignada",
+                    String.format("%s '%s' ha sido asignada a un nuevo incidente (ID: %d). Revisa los detalles y coordina con tu equipo.", 
+                                 roleText, crew.getName(), incidentId),
+                    null
+                );
+            }
+            log.info("Notifications created for {} crew members about incident assignment", activeMembers.size());
+        } catch (Exception e) {
+            // No fallar la operación si las notificaciones fallan
+            log.error("Failed to create notifications for incident assignment: crewId={}, incidentId={}", 
+                     crewId, incidentId, e);
+        }
         
         log.info("Incident assigned successfully: assignmentId={}, crewId={}, incidentId={}", 
                 saved.getId(), crewId, incidentId);
@@ -114,6 +138,27 @@ public class IncidentAssignmentService {
         // Crear con notas
         IncidentAssignment assignment = assignmentFactory.createAssignmentWithNotes(crewId, incidentId, assignedBy, notes);
         IncidentAssignment saved = assignmentRepository.save(assignment);
+        
+        // Notificar a todos los miembros de la cuadrilla
+        try {
+            List<CrewMember> activeMembers = crewMemberService.getActiveMembers(crewId);
+            for (CrewMember member : activeMembers) {
+                String roleText = member.isLeader() ? "Tu cuadrilla" : "La cuadrilla";
+                notificationService.createNotification(
+                    member.getUserId(),
+                    "NOVELTY_ASSIGNED",
+                    "Nueva Novedad Asignada",
+                    String.format("%s '%s' ha sido asignada a un nuevo incidente (ID: %d). Revisa los detalles y coordina con tu equipo. Notas: %s", 
+                                 roleText, crew.getName(), incidentId, notes),
+                    null
+                );
+            }
+            log.info("Notifications created for {} crew members about incident assignment with notes", activeMembers.size());
+        } catch (Exception e) {
+            // No fallar la operación si las notificaciones fallan
+            log.error("Failed to create notifications for incident assignment: crewId={}, incidentId={}", 
+                     crewId, incidentId, e);
+        }
         
         log.info("Incident assigned with notes successfully: assignmentId={}", saved.getId());
         return saved;

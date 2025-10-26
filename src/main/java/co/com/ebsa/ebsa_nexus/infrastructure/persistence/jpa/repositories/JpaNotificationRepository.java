@@ -52,6 +52,24 @@ public interface JpaNotificationRepository extends JpaRepository<Notification, L
     long countUnreadByUserId(@Param("userId") Long userId);
     
     /**
+     * Busca notificaciones por tipo para un usuario.
+     */
+    @Query("SELECT n FROM Notification n WHERE n.user.id = :userId AND n.type = :type ORDER BY n.createdAt DESC")
+    List<Notification> findByUserIdAndType(@Param("userId") Long userId, @Param("type") String type);
+    
+    /**
+     * Busca notificaciones de un usuario creadas después de una fecha.
+     */
+    @Query("SELECT n FROM Notification n WHERE n.user.id = :userId AND n.createdAt > :date ORDER BY n.createdAt DESC")
+    List<Notification> findByUserIdAndCreatedAfter(@Param("userId") Long userId, @Param("date") java.time.LocalDateTime date);
+    
+    /**
+     * Busca todas las notificaciones de un usuario sin paginación.
+     */
+    @Query("SELECT n FROM Notification n WHERE n.user.id = :userId ORDER BY n.createdAt DESC")
+    List<Notification> findAllByUserId(@Param("userId") Long userId);
+    
+    /**
      * Marca todas las notificaciones de un usuario como leídas.
      */
     @Modifying
