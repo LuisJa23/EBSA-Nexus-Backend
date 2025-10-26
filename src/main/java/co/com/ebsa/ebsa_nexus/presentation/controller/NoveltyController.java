@@ -135,7 +135,7 @@ public class NoveltyController {
      * @return Updated novelty details
      */
     @PutMapping("/{noveltyId}/cancel")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN, TRABAJADOR, JEFE_AREA')")
     public ResponseEntity<NoveltyResponse> cancelNovelty(
             @PathVariable Long noveltyId,
             @RequestParam String cancellationReason,
