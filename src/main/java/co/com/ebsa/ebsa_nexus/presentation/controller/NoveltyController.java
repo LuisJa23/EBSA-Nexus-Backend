@@ -10,6 +10,7 @@ import co.com.ebsa.ebsa_nexus.application.dto.response.NoveltyResponse;
 import co.com.ebsa.ebsa_nexus.application.service.novelty.NoveltyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
  * @version 1.0
  * @since 2025-10-21
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/novelties")
 @RequiredArgsConstructor
@@ -189,6 +191,23 @@ public class NoveltyController {
             @PathVariable Long crewId) {
         
         java.util.List<NoveltyResponse> response = noveltyService.getNoveltyByCrew(crewId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get novelties assigned to a user's active crew.
+     * Returns empty list if user has no active crew membership.
+     * 
+     * @param userId User ID
+     * @return List of novelties assigned to the user's crew
+     */
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('TRABAJADOR', 'LIDER_CUADRILLA', 'SUPERVISOR', 'ADMIN')")
+    public ResponseEntity<java.util.List<NoveltyResponse>> getNoveltiesByUser(
+            @PathVariable Long userId) {
+        
+        log.info("Fetching novelties for user: {}", userId);
+        java.util.List<NoveltyResponse> response = noveltyService.getNoveltiesByUser(userId);
         return ResponseEntity.ok(response);
     }
 

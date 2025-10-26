@@ -23,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -37,6 +39,7 @@ public class NoveltyService {
     private final NoveltyValidationService validationService;
     private final NoveltyNotificationService notificationService;
     private final FirebaseStorageAdapter firebaseStorageAdapter;
+    private final CrewMemberRepository crewMemberRepository;
 
     public NoveltyService(
             NoveltyRepository noveltyRepository,
@@ -44,13 +47,15 @@ public class NoveltyService {
             NoveltyAssignmentRepository noveltyAssignmentRepository,
             NoveltyValidationService validationService,
             NoveltyNotificationService notificationService,
-            FirebaseStorageAdapter firebaseStorageAdapter) {
+            FirebaseStorageAdapter firebaseStorageAdapter,
+            CrewMemberRepository crewMemberRepository) {
         this.noveltyRepository = noveltyRepository;
         this.noveltyImageRepository = noveltyImageRepository;
         this.noveltyAssignmentRepository = noveltyAssignmentRepository;
         this.validationService = validationService;
         this.notificationService = notificationService;
         this.firebaseStorageAdapter = firebaseStorageAdapter;
+        this.crewMemberRepository = crewMemberRepository;
     }
 
     /**
@@ -419,6 +424,33 @@ public class NoveltyService {
         return novelties.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get novelties assigned to a user's active crew.
+     * Returns empty list if user has no active crew membership.
+     * 
+     * @param userId User ID
+     * @return List of novelties assigned to user's crew
+     */
+    @Transactional(readOnly = true)
+    public List<NoveltyResponse> getNoveltiesByUser(Long userId) {
+        log.debug("Getting novelties for user: {}", userId);
+        
+        // Find active crew membership for the user
+        List<CrewMember> memberships = crewMemberRepository.findUserHistory(userId);
+        Optional<CrewMember> activeMembership = memberships.stream()
+                .filter(m -> m.getLeftAt() == null)
+                .findFirst();
+        
+        if (activeMembership.isEmpty()) {
+            log.debug("User {} has no active crew membership", userId);
+            return Collections.emptyList();
+        }
+        
+        Long crewId = activeMembership.get().getCrewId();
+        log.debug("User {} belongs to active crew: {}", userId, crewId);
+        return getNoveltyByCrew(crewId);
     }
 
     /**
