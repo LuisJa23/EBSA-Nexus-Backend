@@ -364,6 +364,19 @@ INSERT INTO `crew_members` (`crew_id`, `user_id`, `is_leader`, `joined_at`) VALU
 (3, 8, 0, NOW());
 
 -- =====================================================
+-- ACTUALIZAR NOVEDADES CON CUADRILLAS ASIGNADAS
+-- =====================================================
+
+-- Asignar Cuadrilla Alpha a Novedad 1
+UPDATE `novelties` SET `crew_id` = 1 WHERE `id` = 1;
+
+-- Asignar Cuadrilla Beta a Novedad 2
+UPDATE `novelties` SET `crew_id` = 2 WHERE `id` = 2;
+
+-- Asignar Cuadrilla Gamma a Novedad 3
+UPDATE `novelties` SET `crew_id` = 3 WHERE `id` = 3;
+
+-- =====================================================
 -- INSERTAR UBICACIONES DE EJEMPLO
 -- =====================================================
 INSERT INTO `Location` (`name`, `details`) VALUES
@@ -376,7 +389,7 @@ INSERT INTO `Location` (`name`, `details`) VALUES
 -- INSERTAR NOVEDADES DE EJEMPLO
 -- =====================================================
 
--- Novedad 1 - Error de lectura
+-- Novedad 1 - Error de lectura (SIN crew_id inicialmente)
 INSERT INTO `novelties` (
     `area_id`,
     `reason`,
@@ -390,7 +403,6 @@ INSERT INTO `novelties` (
     `observations`,
     `status`,
     `created_by`,
-    `crew_id`,
     `created_at`
 ) VALUES (
     1,
@@ -405,11 +417,10 @@ INSERT INTO `novelties` (
     'Prioridad alta',
     'CREADA',
     1,
-    1,
     NOW()
 );
 
--- Novedad 2 - Actualización de datos
+-- Novedad 2 - Actualización de datos (SIN crew_id inicialmente)
 INSERT INTO `novelties` (
     `area_id`,
     `reason`,
@@ -423,7 +434,6 @@ INSERT INTO `novelties` (
     `observations`,
     `status`,
     `created_by`,
-    `crew_id`,
     `created_at`
 ) VALUES (
     2,
@@ -438,11 +448,10 @@ INSERT INTO `novelties` (
     'Revisión programada',
     'CREADA',
     2,
-    2,
     NOW()
 );
 
--- Novedad 3 - Otro motivo
+-- Novedad 3 - Otro motivo (SIN crew_id inicialmente)
 INSERT INTO `novelties` (
     `area_id`,
     `reason`,
@@ -456,7 +465,6 @@ INSERT INTO `novelties` (
     `observations`,
     `status`,
     `created_by`,
-    `crew_id`,
     `created_at`
 ) VALUES (
     1,
@@ -471,7 +479,6 @@ INSERT INTO `novelties` (
     'Nueva instalación',
     'CREADA',
     2,
-    3,
     NOW()
 );
 
