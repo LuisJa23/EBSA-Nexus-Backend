@@ -1,3 +1,7 @@
+// SecurityConfig.java - VERSIÓN CORREGIDA
+// Copiar y reemplazar el contenido de:
+// src/main/java/co/com/ebsa/ebsa_nexus/infrastructure/config/SecurityConfig.java
+
 package co.com.ebsa.ebsa_nexus.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
@@ -64,9 +68,36 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:8084"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
+        
+        // ════════════════════════════════════════════════════════════════
+        // ⚠️ CAMBIO PRINCIPAL: Agregar IP de red local
+        // ════════════════════════════════════════════════════════════════
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:4200",
+            "http://localhost:8084",
+            "http://192.168.1.38:8080",     // ← AGREGADO: IP de red local con puerto
+            "http://192.168.1.38"           // ← AGREGADO: IP de red local sin puerto
+        ));
+        
+        // ════════════════════════════════════════════════════════════════
+        // ⚠️ CAMBIO SECUNDARIO: Agregar PATCH a métodos permitidos
+        // ════════════════════════════════════════════════════════════════
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET", 
+            "POST", 
+            "PUT", 
+            "PATCH",    // ← AGREGADO: Método PATCH
+            "DELETE", 
+            "OPTIONS"
+        ));
+        
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type", 
+            "X-Requested-With", 
+            "Accept"
+        ));
+        
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
         

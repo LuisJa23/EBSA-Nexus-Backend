@@ -186,8 +186,10 @@ public class NoveltyService {
         assignment.setNoveltyId(noveltyId);
         assignment.setAssignedCrewId(request.getAssignedCrewId());
         assignment.setCrewId(request.getAssignedCrewId()); // Campo duplicado requerido por la DB
-        assignment.setAssignedByUserId(assignedByUserId);
-        assignment.setAssignedBy(assignedByUserId); // Campo adicional requerido por la DB
+        // TEMPORAL: Usar ID 1 (admin) si no hay userId para pruebas sin autenticación
+        Long effectiveUserId = (assignedByUserId != null) ? assignedByUserId : 1L;
+        assignment.setAssignedByUserId(effectiveUserId);
+        assignment.setAssignedBy(effectiveUserId); // Campo adicional requerido por la DB
         assignment.setInstructions(request.getInstructions());
         assignment.setPriority(request.getPriority());
         assignment.setEstimatedResolutionDate(request.getEstimatedResolutionDate());
