@@ -1,7 +1,3 @@
-// SecurityConfig.java - VERSIÓN CORREGIDA
-// Copiar y reemplazar el contenido de:
-// src/main/java/co/com/ebsa/ebsa_nexus/infrastructure/config/SecurityConfig.java
-
 package co.com.ebsa.ebsa_nexus.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
@@ -55,7 +51,9 @@ public class SecurityConfig {
                     "/api/v1/notifications",
                     "/api/v1/notifications/**", // Permitir acceso público a notificaciones (para pruebas)
                     "/api/v1/novelties",
-                    "/api/v1/novelties/**" // Permitir acceso público a novedades (para pruebas)
+                    "/api/v1/novelties/**", // Permitir acceso público a novedades (para pruebas)
+                    "/api/v1/novelty-reports",
+                    "/api/v1/novelty-reports/**" // Permitir acceso público a reportes de novedades (para pruebas)
                 ).permitAll()
                 .requestMatchers("/api/users/me").authenticated()  // Permitir a cualquier usuario autenticado
                 .requestMatchers("/api/users/**").hasRole("ADMIN") // Solo ADMIN para el resto de endpoints

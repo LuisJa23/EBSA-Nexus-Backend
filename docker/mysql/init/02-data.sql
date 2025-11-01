@@ -316,6 +316,39 @@ INSERT INTO `users` (
     NOW()
 );
 
+-- Usuario Trabajador de prueba (Pedro)
+INSERT INTO `users` (
+    `uuid`, 
+    `username`,
+    `email`, 
+    `pwd_hash`, 
+    `first_name`, 
+    `last_name`, 
+    `role_id`, 
+    `work_role_id`,
+    `work_type`, 
+    `document_number`, 
+    `phone`, 
+    `active`, 
+    `created_at`, 
+    `updated_at`
+) VALUES (
+    'worker5-uuid-001', 
+    'pedro',
+    'pedro@ebsa.com.co', 
+    '$2a$12$KO2D8u/O9SDu99spxwIfRuMdCKpVoG8Ol8TwqUWK0cQPTjUDeFC2e',
+    'Pedro',
+    'Cruz',
+    4,
+    6,
+    'intern',
+    '77777777',
+    '+57-310-7777777',
+    1,
+    NOW(),
+    NOW()
+);
+
 -- =====================================================
 -- INSERTAR CUADRILLAS
 -- =====================================================
@@ -330,7 +363,7 @@ INSERT INTO `crews` (`name`, `description`, `created_by`, `status`, `created_at`
 
 -- Cuadrilla Gamma - Instalaciones
 INSERT INTO `crews` (`name`, `description`, `created_by`, `status`, `created_at`, `updated_at`) VALUES
-('Cuadrilla Gamma', 'Cuadrilla especializada en nuevas instalaciones y expansión de red', 2, 'DISPONIBLE', NOW(), NOW());
+('Cuadrilla Gamma', 'Cuadrilla especializada en nuevas instalaciones y expansión de red', 1, 'DISPONIBLE', NOW(), NOW());
 
 -- =====================================================
 -- INSERTAR MIEMBROS DE CUADRILLAS
@@ -357,6 +390,10 @@ INSERT INTO `crew_members` (`crew_id`, `user_id`, `is_leader`, `joined_at`) VALU
 -- Miembro: Pedro Rodríguez (user_id: 7)
 INSERT INTO `crew_members` (`crew_id`, `user_id`, `is_leader`, `joined_at`) VALUES
 (2, 7, 0, NOW());
+
+-- Miembro: Pedro Cruz (user_id: 9) - Usuario de prueba
+INSERT INTO `crew_members` (`crew_id`, `user_id`, `is_leader`, `joined_at`) VALUES
+(2, 9, 0, NOW());
 
 -- Cuadrilla Gamma (ID: 3)
 -- Miembro: Carlos Gómez (user_id: 8) - Sin líder asignado aún

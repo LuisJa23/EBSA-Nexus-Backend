@@ -61,10 +61,11 @@ public class NoveltyService {
     /**
      * Create a new novelty from meter reading form
      * The novelty is created in CREADA status without crew assignment
+     * Any authenticated user can create novelties
      */
     public NoveltyResponse createNovelty(CreateNoveltyRequest request, Long createdByUserId) {
-        // Validate user can create novelty
-        validationService.validateSupervisorCanReport(createdByUserId);
+        // Any authenticated user can create novelties - no role validation needed
+        log.info("Creating novelty for user {}", createdByUserId);
 
         // Create novelty entity in CREADA status (no crew assigned yet)
         Novelty novelty = new Novelty();
@@ -203,7 +204,10 @@ public class NoveltyService {
         noveltyRepository.save(novelty);
 
         // Send notification to assigned crew
+        log.info("Llamando a notificationService.notifyCrewAssignment para novedad {} y cuadrilla {}", 
+                noveltyId, request.getAssignedCrewId());
         notificationService.notifyCrewAssignment(novelty, assignment);
+        log.info("Finalizada llamada a notificationService.notifyCrewAssignment");
 
         // Fetch images and assignment for response
         List<NoveltyImage> images = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(noveltyId);
@@ -344,6 +348,76 @@ public class NoveltyService {
 
         // Notify involved parties
         notificationService.notifyCancellation(novelty);
+
+        // Fetch images and assignment for response
+        List<NoveltyImage> images = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(noveltyId);
+        NoveltyAssignment assignment = noveltyAssignmentRepository.findLatestByNoveltyId(noveltyId).orElse(null);
+        
+        return mapToResponse(novelty, images, assignment);
+    }
+
+    /**
+     * Update novelty status directly (for development/testing purposes).
+     * 
+     * WARNING: This bypasses normal workflow validations.
+     * Use specific endpoints (assign, start, resolve) for production.
+     * 
+     * @param noveltyId Novelty ID
+     * @param newStatus New status to set
+     * @param notes Optional notes about the status change
+     * @param updatedByUserId User making the change (optional for public access)
+     * @return Updated novelty response
+     */
+    public NoveltyResponse updateStatus(Long noveltyId, NoveltyStatus newStatus, String notes, Long updatedByUserId) {
+        log.info("Updating novelty {} status to {} by user {}", noveltyId, newStatus, updatedByUserId);
+        
+        // Find novelty
+        Novelty novelty = noveltyRepository.findById(noveltyId)
+                .orElseThrow(() -> new NoveltyOperationException("Novelty not found with id: " + noveltyId));
+
+        NoveltyStatus oldStatus = novelty.getStatus();
+        log.info("Changing novelty {} from {} to {}", noveltyId, oldStatus, newStatus);
+
+        // Update status
+        novelty.setStatus(newStatus);
+        novelty.setUpdatedAt(LocalDateTime.now());
+        
+        // Update timestamps based on new status
+        LocalDateTime now = LocalDateTime.now();
+        switch (newStatus) {
+            case EN_CURSO:
+                // Novelty is now in progress
+                break;
+            case COMPLETADA:
+                // Set completed timestamp
+                if (novelty.getCompletedAt() == null) {
+                    novelty.setCompletedAt(now);
+                }
+                break;
+            case CERRADA:
+                // Set both completed and closed timestamps
+                if (novelty.getCompletedAt() == null) {
+                    novelty.setCompletedAt(now);
+                }
+                if (novelty.getClosedAt() == null) {
+                    novelty.setClosedAt(now);
+                }
+                break;
+            case CANCELADA:
+                // Keep existing cancel logic
+                break;
+            default:
+                break;
+        }
+        
+        // Append notes if provided
+        if (notes != null && !notes.trim().isEmpty()) {
+            String currentObs = novelty.getObservations() != null ? novelty.getObservations() : "";
+            novelty.setObservations(currentObs + "\n\nCambio de estado (" + oldStatus + " → " + newStatus + "): " + notes);
+        }
+        
+        noveltyRepository.save(novelty);
+        log.info("Novelty {} status updated successfully from {} to {}", noveltyId, oldStatus, newStatus);
 
         // Fetch images and assignment for response
         List<NoveltyImage> images = noveltyImageRepository.findByNoveltyIdOrderByUploadedAtDesc(noveltyId);

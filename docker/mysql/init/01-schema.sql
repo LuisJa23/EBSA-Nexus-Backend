@@ -313,12 +313,16 @@ CREATE TABLE IF NOT EXISTS `novelty_reports` (
   `novelty_id` BIGINT UNSIGNED NOT NULL UNIQUE,
   `generated_by` BIGINT UNSIGNED NOT NULL,
   `report_content` TEXT NOT NULL,
-  `resolution_time_hours` INT NULL,
   `observations` TEXT NULL,
+  `work_start_date` DATETIME NULL COMMENT 'Fecha real de inicio del trabajo',
+  `work_end_date` DATETIME NULL COMMENT 'Fecha real de finalización del trabajo',
+  `resolution_time_hours` DECIMAL(10,2) NULL COMMENT 'Tiempo de resolución en horas',
+  `resolution_status` ENUM('COMPLETADA', 'NO_COMPLETADA', 'CERRADA') NOT NULL DEFAULT 'COMPLETADA' COMMENT 'Estado resultante de la novedad tras el reporte',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `novelty_id_UNIQUE` (`novelty_id` ASC),
   INDEX `idx_novelty_reports_generated_by` (`generated_by` ASC),
+  INDEX `idx_novelty_reports_resolution_status` (`resolution_status` ASC),
   CONSTRAINT `fk_novelty_reports_novelty`
     FOREIGN KEY (`novelty_id`)
     REFERENCES `novelties` (`id`)
@@ -326,6 +330,30 @@ CREATE TABLE IF NOT EXISTS `novelty_reports` (
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_novelty_reports_generated_by`
     FOREIGN KEY (`generated_by`)
+    REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE = InnoDB;
+
+-- =====================================================
+-- Table: report_participants
+-- =====================================================
+CREATE TABLE IF NOT EXISTS `report_participants` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `report_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `added_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_report_participants_report_id` (`report_id` ASC),
+  INDEX `idx_report_participants_user_id` (`user_id` ASC),
+  UNIQUE INDEX `unique_report_user` (`report_id`, `user_id`),
+  CONSTRAINT `fk_report_participants_report`
+    FOREIGN KEY (`report_id`)
+    REFERENCES `novelty_reports` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_participants_user`
+    FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
