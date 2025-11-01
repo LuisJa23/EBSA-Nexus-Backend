@@ -360,27 +360,7 @@ CREATE TABLE IF NOT EXISTS `report_participants` (
 ) ENGINE = InnoDB;
 
 -- =====================================================
--- Table: reports (placeholder for future use)
--- =====================================================
-CREATE TABLE IF NOT EXISTS `reports` (
-  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `report_uuid` VARCHAR(45) NULL,
-  `title` VARCHAR(100) NULL,
-  `description` TEXT NULL,
-  `created_by` BIGINT UNSIGNED NOT NULL,
-  `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  INDEX `fk_reports_users_idx` (`created_by` ASC),
-  CONSTRAINT `fk_reports_users`
-    FOREIGN KEY (`created_by`)
-    REFERENCES `users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE = InnoDB;
-
--- =====================================================
--- Table: notifications (placeholder for future use)
+-- Table: notifications
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -389,7 +369,9 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `type` VARCHAR(50) NOT NULL,
   `title` VARCHAR(200) NOT NULL,
   `message` TEXT NOT NULL,
+  `priority` VARCHAR(20) NULL DEFAULT 'MEDIUM',
   `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+  `read_at` DATETIME NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX `idx_notifications_user_id` (`user_id` ASC),

@@ -12,20 +12,57 @@ USE `mydb`;
 -- =====================================================
 
 -- Agregar work_start_date si no existe
-ALTER TABLE `novelty_reports`
-ADD COLUMN IF NOT EXISTS `work_start_date` DATETIME NULL COMMENT 'Fecha real de inicio del trabajo'
-AFTER `observations`;
+SET @dbname = DATABASE();
+SET @tablename = 'novelty_reports';
+SET @columnname = 'work_start_date';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' DATETIME NULL COMMENT ''Fecha real de inicio del trabajo'' AFTER `observations`')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Agregar work_end_date si no existe
-ALTER TABLE `novelty_reports`
-ADD COLUMN IF NOT EXISTS `work_end_date` DATETIME NULL COMMENT 'Fecha real de finalización del trabajo'
-AFTER `work_start_date`;
+SET @columnname = 'work_end_date';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' DATETIME NULL COMMENT ''Fecha real de finalización del trabajo'' AFTER `work_start_date`')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- Agregar resolution_status si no existe
-ALTER TABLE `novelty_reports`
-ADD COLUMN IF NOT EXISTS `resolution_status` ENUM('COMPLETADA', 'NO_COMPLETADA', 'CERRADA') NOT NULL DEFAULT 'COMPLETADA' 
-COMMENT 'Estado resultante de la novedad tras el reporte'
-AFTER `work_end_date`;
+SET @columnname = 'resolution_status';
+SET @preparedStatement = (SELECT IF(
+  (
+    SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE
+      (table_name = @tablename)
+      AND (table_schema = @dbname)
+      AND (column_name = @columnname)
+  ) > 0,
+  'SELECT 1',
+  CONCAT('ALTER TABLE ', @tablename, ' ADD COLUMN ', @columnname, ' ENUM(''COMPLETADA'', ''NO_COMPLETADA'', ''CERRADA'') NOT NULL DEFAULT ''COMPLETADA'' COMMENT ''Estado resultante de la novedad tras el reporte'' AFTER `work_end_date`')
+));
+PREPARE alterIfNotExists FROM @preparedStatement;
+EXECUTE alterIfNotExists;
+DEALLOCATE PREPARE alterIfNotExists;
 
 -- =====================================================
 -- Step 2: Add index for resolution_status

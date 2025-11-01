@@ -51,9 +51,11 @@ public class SecurityConfig {
                     "/api/v1/notifications",
                     "/api/v1/notifications/**", // Permitir acceso público a notificaciones (para pruebas)
                     "/api/v1/novelties",
-                    "/api/v1/novelties/**", // Permitir acceso público a novedades (para pruebas)
+                    "/api/v1/novelties/**", 
                     "/api/v1/novelty-reports",
-                    "/api/v1/novelty-reports/**" // Permitir acceso público a reportes de novedades (para pruebas)
+                    "/api/v1/novelty-reports/**", // Permitir acceso público a reportes de novedades (para pruebas)
+                    "/api/v1/analytics",
+                    "/api/v1/analytics/**" // Permitir acceso público a analytics (para pruebas)
                 ).permitAll()
                 .requestMatchers("/api/users/me").authenticated()  // Permitir a cualquier usuario autenticado
                 .requestMatchers("/api/users/**").hasRole("ADMIN") // Solo ADMIN para el resto de endpoints
@@ -72,9 +74,9 @@ public class SecurityConfig {
         // ════════════════════════════════════════════════════════════════
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:4200",
-            "http://localhost:8084",
-            "http://192.168.1.38:8080",     // ← AGREGADO: IP de red local con puerto
-            "http://192.168.1.38"           // ← AGREGADO: IP de red local sin puerto
+            "http://localhost:8080",
+            "http://192.168.0.9:8080",     // ← AGREGADO: IP de red local con puerto
+            "http://192.168.0.9"           // ← AGREGADO: IP de red local sin puerto
         ));
         
         // ════════════════════════════════════════════════════════════════
