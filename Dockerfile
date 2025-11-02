@@ -6,7 +6,7 @@
 # ===============================
 # BUILD STAGE
 # ===============================
-FROM maven:3.9-eclipse-temurin-17-alpine AS build
+FROM maven:3.9-eclipse-temurin-21-alpine AS build
 
 # Set working directory
 WORKDIR /app
@@ -25,7 +25,7 @@ RUN mvn clean package -DskipTests -B
 # ===============================
 # RUNTIME STAGE
 # ===============================
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 # Create application user for security
 RUN addgroup -g 1001 -S appgroup && adduser -S -u 1001 -G appgroup appuser
