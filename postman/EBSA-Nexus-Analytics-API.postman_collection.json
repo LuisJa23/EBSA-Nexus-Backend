@@ -1,0 +1,470 @@
+{
+  "info": {
+    "name": "EBSA Nexus - Analytics API",
+    "description": "Colección de endpoints de Analytics para EBSA Nexus",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "analytics-api-collection",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data.token) {",
+                  "    pm.collectionVariables.set('token', jsonData.data.token);",
+                  "    console.log('Token saved:', jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Obtener token JWT para autenticación"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "1. Dashboard Completo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "dashboard"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Dashboard consolidado con todas las métricas principales"
+          }
+        },
+        {
+          "name": "2. Estadísticas Generales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/novelties/overview",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "novelties", "overview"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59",
+                  "disabled": true
+                },
+                {
+                  "key": "areaId",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "1=FACTURACION, 2=CARTERA, 3=PERDIDAS"
+                }
+              ]
+            },
+            "description": "Estadísticas generales de novedades"
+          }
+        },
+        {
+          "name": "3. Tendencias - Mensual",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/novelties/trends?period=monthly",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "novelties", "trends"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "monthly",
+                  "description": "daily, weekly, monthly"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59",
+                  "disabled": true
+                },
+                {
+                  "key": "areaId",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Tendencia temporal de novedades por período"
+          }
+        },
+        {
+          "name": "3. Tendencias - Semanal",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/novelties/trends?period=weekly",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "novelties", "trends"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "weekly"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Tendencias - Diaria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/novelties/trends?period=daily",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "novelties", "trends"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "daily"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Rendimiento de Cuadrillas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/crews/performance",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "crews", "performance"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59",
+                  "disabled": true
+                },
+                {
+                  "key": "crewId",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "ID de cuadrilla específica"
+                }
+              ]
+            },
+            "description": "Estadísticas de rendimiento de cuadrillas"
+          }
+        },
+        {
+          "name": "4. Rendimiento de Cuadrilla Específica",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/crews/performance?crewId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "crews", "performance"],
+              "query": [
+                {
+                  "key": "crewId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. Rendimiento de Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/users/performance",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "users", "performance"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59",
+                  "disabled": true
+                },
+                {
+                  "key": "userId",
+                  "value": "10",
+                  "disabled": true,
+                  "description": "ID de usuario específico"
+                },
+                {
+                  "key": "workRoleId",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Filtrar por rol de trabajo"
+                }
+              ]
+            },
+            "description": "Estadísticas de rendimiento de usuarios"
+          }
+        },
+        {
+          "name": "5. Rendimiento de Usuario Específico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/users/performance?userId=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "users", "performance"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "5. Usuarios por Rol de Trabajo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/users/performance?workRoleId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "users", "performance"],
+              "query": [
+                {
+                  "key": "workRoleId",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Distribución por Municipio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/novelties/by-municipality",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "novelties", "by-municipality"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "COMPLETADA",
+                  "disabled": true,
+                  "description": "CREADA, EN_CURSO, COMPLETADA, CERRADA, CANCELADA"
+                }
+              ]
+            },
+            "description": "Distribución geográfica de novedades por municipio"
+          }
+        },
+        {
+          "name": "7. Top Cuadrillas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/top-performers?type=crews&limit=5&sortBy=completionRate",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "top-performers"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "crews",
+                  "description": "users o crews"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Cantidad de resultados"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "completionRate",
+                  "description": "completionRate, totalCompleted, averageTime"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-12-31T23:59:59",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Top 5 cuadrillas con mejor tasa de completitud"
+          }
+        },
+        {
+          "name": "7. Top Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/top-performers?type=users&limit=10&sortBy=completionRate",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "top-performers"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "users"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "completionRate"
+                }
+              ]
+            },
+            "description": "Top 10 usuarios con mejor tasa de completitud"
+          }
+        },
+        {
+          "name": "7. Top por Total Completadas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/top-performers?type=users&sortBy=totalCompleted",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "top-performers"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "users"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "totalCompleted"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "7. Top por Tiempo Promedio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/analytics/top-performers?type=crews&sortBy=averageTime",
+              "host": ["{{baseUrl}}"],
+              "path": ["analytics", "top-performers"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "crews"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "averageTime"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

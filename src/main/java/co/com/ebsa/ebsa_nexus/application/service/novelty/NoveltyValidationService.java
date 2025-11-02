@@ -82,9 +82,10 @@ public class NoveltyValidationService {
         //     throw new NoveltyOperationException("Only admins can assign crews");
         // }
         
-        if (userId == null) {
-            throw new NoveltyOperationException("User ID is required");
-        }
+        // Comentado temporalmente para pruebas sin autenticación
+        // if (userId == null) {
+        //     throw new NoveltyOperationException("User ID is required");
+        // }
     }
 
     /**

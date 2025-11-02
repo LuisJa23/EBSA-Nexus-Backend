@@ -45,6 +45,7 @@ public class CrewMemberService {
     private final CrewMemberRepository memberRepository;
     private final CrewRepository crewRepository;
     private final CrewMemberFactory memberFactory;
+    private final NotificationApplicationService notificationService;
     
     /**
      * Añade un miembro regular a una cuadrilla.
@@ -75,6 +76,22 @@ public class CrewMemberService {
         // Crear y guardar la membresía
         CrewMember member = memberFactory.createMember(crewId, userId);
         CrewMember saved = memberRepository.save(member);
+        
+        // Crear notificación automática para el usuario
+        try {
+            notificationService.createNotification(
+                userId,
+                "CREW_ASSIGNED",
+                "Asignado a Cuadrilla",
+                String.format("Has sido agregado como miembro de la cuadrilla '%s'.", crew.getName()),
+                null
+            );
+            log.info("Notification created for user {} about crew assignment", userId);
+        } catch (Exception e) {
+            // No fallar la operación si la notificación falla
+            log.error("Failed to create notification for crew member assignment: userId={}, crewId={}", 
+                     userId, crewId, e);
+        }
         
         log.info("Member added successfully: crewId={}, userId={}", crewId, userId);
         return saved;
@@ -116,6 +133,23 @@ public class CrewMemberService {
         // Crear y guardar como líder
         CrewMember leader = memberFactory.createLeader(crewId, userId);
         CrewMember saved = memberRepository.save(leader);
+        
+        // Crear notificación automática para el líder
+        try {
+            notificationService.createNotification(
+                userId,
+                "CREW_ASSIGNED",
+                "Asignado como Líder de Cuadrilla",
+                String.format("Has sido designado como líder de la cuadrilla '%s'. Ahora eres responsable de coordinar las actividades del equipo.", 
+                             crew.getName()),
+                null
+            );
+            log.info("Notification created for user {} about leader assignment", userId);
+        } catch (Exception e) {
+            // No fallar la operación si la notificación falla
+            log.error("Failed to create notification for crew leader assignment: userId={}, crewId={}", 
+                     userId, crewId, e);
+        }
         
         log.info("Leader added successfully: crewId={}, userId={}", crewId, userId);
         return saved;
@@ -164,6 +198,23 @@ public class CrewMemberService {
         // Marcar como salido
         member.markAsLeft();
         memberRepository.save(member);
+        
+        // Crear notificación automática para el usuario removido
+        try {
+            String roleText = member.isLeader() ? "líder" : "miembro";
+            notificationService.createNotification(
+                userId,
+                "CREW_ASSIGNED",
+                "Removido de Cuadrilla",
+                String.format("Has sido removido como %s de la cuadrilla '%s'.", roleText, crew.getName()),
+                null
+            );
+            log.info("Notification created for user {} about crew removal", userId);
+        } catch (Exception e) {
+            // No fallar la operación si la notificación falla
+            log.error("Failed to create notification for crew member removal: userId={}, crewId={}", 
+                     userId, crewId, e);
+        }
         
         log.info("Member removed successfully: crewId={}, userId={}", crewId, userId);
     }

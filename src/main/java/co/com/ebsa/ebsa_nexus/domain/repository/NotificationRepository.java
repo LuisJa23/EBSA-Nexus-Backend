@@ -77,6 +77,40 @@ public interface NotificationRepository {
     List<Notification> findByNoveltyId(Long noveltyId);
     
     /**
+     * Obtiene todas las notificaciones de un usuario sin paginación.
+     * 
+     * @param userId ID del usuario
+     * @return Lista de todas las notificaciones del usuario
+     */
+    List<Notification> findByUserId(Long userId);
+    
+    /**
+     * Obtiene notificaciones de un usuario por tipo.
+     * 
+     * @param userId ID del usuario
+     * @param type Tipo de notificación
+     * @return Lista de notificaciones del tipo especificado
+     */
+    List<Notification> findByUserIdAndType(Long userId, String type);
+    
+    /**
+     * Obtiene notificaciones de un usuario creadas después de una fecha.
+     * 
+     * @param userId ID del usuario
+     * @param date Fecha de referencia
+     * @return Lista de notificaciones creadas después de la fecha
+     */
+    List<Notification> findByUserIdAndCreatedAfter(Long userId, java.time.LocalDateTime date);
+    
+    /**
+     * Marca una notificación específica como leída.
+     * 
+     * @param notificationId ID de la notificación
+     * @return Notificación actualizada
+     */
+    Notification markAsRead(Long notificationId);
+    
+    /**
      * Cuenta notificaciones no leídas de un usuario.
      * 
      * @param userId ID del usuario

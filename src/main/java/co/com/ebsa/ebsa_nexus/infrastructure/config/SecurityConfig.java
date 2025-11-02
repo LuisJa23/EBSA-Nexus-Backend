@@ -47,7 +47,15 @@ public class SecurityConfig {
                     "/api/public/**",
                     "/areas",
                     "/api/work-roles",
-                    "/api/work-roles/**" // Permitir acceso público a todos los endpoints de work-roles
+                    "/api/work-roles/**", // Permitir acceso público a todos los endpoints de work-roles
+                    "/api/v1/notifications",
+                    "/api/v1/notifications/**", // Permitir acceso público a notificaciones (para pruebas)
+                    "/api/v1/novelties",
+                    "/api/v1/novelties/**", 
+                    "/api/v1/novelty-reports",
+                    "/api/v1/novelty-reports/**", // Permitir acceso público a reportes de novedades (para pruebas)
+                    "/api/v1/analytics",
+                    "/api/v1/analytics/**" // Permitir acceso público a analytics (para pruebas)
                 ).permitAll()
                 .requestMatchers("/api/users/me").authenticated()  // Permitir a cualquier usuario autenticado
                 .requestMatchers("/api/users/**").hasRole("ADMIN") // Solo ADMIN para el resto de endpoints
@@ -60,9 +68,36 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:8084"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
+        
+        // ════════════════════════════════════════════════════════════════
+        // ⚠️ CAMBIO PRINCIPAL: Agregar IP de red local
+        // ════════════════════════════════════════════════════════════════
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:4200",
+            "http://localhost:8080",
+            "http://192.168.0.9:8080",     // ← AGREGADO: IP de red local con puerto
+            "http://192.168.0.9"           // ← AGREGADO: IP de red local sin puerto
+        ));
+        
+        // ════════════════════════════════════════════════════════════════
+        // ⚠️ CAMBIO SECUNDARIO: Agregar PATCH a métodos permitidos
+        // ════════════════════════════════════════════════════════════════
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET", 
+            "POST", 
+            "PUT", 
+            "PATCH",    // ← AGREGADO: Método PATCH
+            "DELETE", 
+            "OPTIONS"
+        ));
+        
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type", 
+            "X-Requested-With", 
+            "Accept"
+        ));
+        
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
         

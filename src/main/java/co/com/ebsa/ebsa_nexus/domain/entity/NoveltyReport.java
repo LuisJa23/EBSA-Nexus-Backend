@@ -1,5 +1,6 @@
 package co.com.ebsa.ebsa_nexus.domain.entity;
 
+import co.com.ebsa.ebsa_nexus.domain.enums.ResolutionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -19,13 +22,14 @@ import java.util.Objects;
  * <ul>
  *   <li>Solo puede haber un reporte por novedad (relación 1:1)</li>
  *   <li>Solo el jefe de cuadrilla puede generar el reporte</li>
- *   <li>Al generar el reporte, la novedad pasa a COMPLETED y luego a CLOSED</li>
+ *   <li>El estado resultante (resolutionStatus) determina el nuevo estado de la novedad</li>
  *   <li>El reporte incluye tiempo de resolución calculado</li>
+ *   <li>Se registran los participantes específicos que resolvieron la novedad</li>
  * </ul>
  * 
  * @author EBSA Nexus Team
- * @version 1.0
- * @since 2025-10-21
+ * @version 2.0
+ * @since 2025-10-28
  */
 @Data
 @Builder
@@ -33,7 +37,8 @@ import java.util.Objects;
 @AllArgsConstructor
 @Entity
 @Table(name = "novelty_reports", indexes = {
-    @Index(name = "idx_novelty_reports_generated_by", columnList = "generated_by")
+    @Index(name = "idx_novelty_reports_generated_by", columnList = "generated_by"),
+    @Index(name = "idx_novelty_reports_resolution_status", columnList = "resolution_status")
 })
 public class NoveltyReport {
     
@@ -79,6 +84,34 @@ public class NoveltyReport {
      */
     @Column(columnDefinition = "TEXT")
     private String observations;
+    
+    /**
+     * Fecha real de inicio del trabajo de campo.
+     */
+    @Column(name = "work_start_date")
+    private LocalDateTime workStartDate;
+    
+    /**
+     * Fecha real de finalización del trabajo de campo.
+     */
+    @Column(name = "work_end_date")
+    private LocalDateTime workEndDate;
+    
+    /**
+     * Estado resultante de la novedad tras el reporte.
+     * Determina si la novedad se completa, cierra o requiere más trabajo.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "resolution_status", nullable = false, length = 20)
+    @Builder.Default
+    private ResolutionStatus resolutionStatus = ResolutionStatus.COMPLETADA;
+    
+    /**
+     * Lista de participantes que resolvieron la novedad.
+     */
+    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<ReportParticipant> participants = new ArrayList<>();
     
     /**
      * Fecha de creación del reporte.
@@ -139,6 +172,47 @@ public class NoveltyReport {
      */
     public void addObservations(String observations) {
         this.observations = observations;
+    }
+    
+    /**
+     * Agrega un participante al reporte.
+     * 
+     * @param participant Participante a agregar
+     */
+    public void addParticipant(ReportParticipant participant) {
+        if (participants == null) {
+            participants = new ArrayList<>();
+        }
+        participants.add(participant);
+        participant.setReport(this);
+    }
+    
+    /**
+     * Verifica si la novedad debe completarse según el reporte.
+     * 
+     * @return true si el estado es COMPLETADA o CERRADA
+     */
+    public boolean shouldCompleteNovelty() {
+        return resolutionStatus == ResolutionStatus.COMPLETADA || 
+               resolutionStatus == ResolutionStatus.CERRADA;
+    }
+    
+    /**
+     * Verifica si la novedad debe cerrarse según el reporte.
+     * 
+     * @return true si el estado es CERRADA
+     */
+    public boolean shouldCloseNovelty() {
+        return resolutionStatus == ResolutionStatus.CERRADA;
+    }
+    
+    /**
+     * Verifica si la novedad permanece en curso según el reporte.
+     * 
+     * @return true si el estado es NO_COMPLETADA
+     */
+    public boolean shouldKeepNoveltyInProgress() {
+        return resolutionStatus == ResolutionStatus.NO_COMPLETADA;
     }
     
     // ========== equals y hashCode ==========

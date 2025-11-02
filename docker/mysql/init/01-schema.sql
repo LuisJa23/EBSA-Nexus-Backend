@@ -312,12 +312,16 @@ CREATE TABLE IF NOT EXISTS `novelty_reports` (
   `novelty_id` BIGINT UNSIGNED NOT NULL UNIQUE,
   `generated_by` BIGINT UNSIGNED NOT NULL,
   `report_content` TEXT NOT NULL,
-  `resolution_time_hours` INT NULL,
   `observations` TEXT NULL,
+  `work_start_date` DATETIME NULL COMMENT 'Fecha real de inicio del trabajo',
+  `work_end_date` DATETIME NULL COMMENT 'Fecha real de finalización del trabajo',
+  `resolution_time_hours` DECIMAL(10,2) NULL COMMENT 'Tiempo de resolución en horas',
+  `resolution_status` ENUM('COMPLETADA', 'NO_COMPLETADA', 'CERRADA') NOT NULL DEFAULT 'COMPLETADA' COMMENT 'Estado resultante de la novedad tras el reporte',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `novelty_id_UNIQUE` (`novelty_id` ASC),
   INDEX `idx_novelty_reports_generated_by` (`generated_by` ASC),
+  INDEX `idx_novelty_reports_resolution_status` (`resolution_status` ASC),
   CONSTRAINT `fk_novelty_reports_novelty`
     FOREIGN KEY (`novelty_id`)
     REFERENCES `novelties` (`id`)
@@ -331,27 +335,31 @@ CREATE TABLE IF NOT EXISTS `novelty_reports` (
 ) ENGINE = InnoDB;
 
 -- =====================================================
--- Table: reports (placeholder for future use)
+-- Table: report_participants
 -- =====================================================
-CREATE TABLE IF NOT EXISTS `reports` (
+CREATE TABLE IF NOT EXISTS `report_participants` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `report_uuid` VARCHAR(45) NULL,
-  `title` VARCHAR(100) NULL,
-  `description` TEXT NULL,
-  `created_by` BIGINT UNSIGNED NOT NULL,
-  `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `report_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `added_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_reports_users_idx` (`created_by` ASC),
-  CONSTRAINT `fk_reports_users`
-    FOREIGN KEY (`created_by`)
+  INDEX `idx_report_participants_report_id` (`report_id` ASC),
+  INDEX `idx_report_participants_user_id` (`user_id` ASC),
+  UNIQUE INDEX `unique_report_user` (`report_id`, `user_id`),
+  CONSTRAINT `fk_report_participants_report`
+    FOREIGN KEY (`report_id`)
+    REFERENCES `novelty_reports` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_participants_user`
+    FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 ) ENGINE = InnoDB;
 
 -- =====================================================
--- Table: notifications (placeholder for future use)
+-- Table: notifications
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -360,7 +368,9 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `type` VARCHAR(50) NOT NULL,
   `title` VARCHAR(200) NOT NULL,
   `message` TEXT NOT NULL,
+  `priority` VARCHAR(20) NULL DEFAULT 'MEDIUM',
   `is_read` TINYINT(1) NOT NULL DEFAULT 0,
+  `read_at` DATETIME NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX `idx_notifications_user_id` (`user_id` ASC),

@@ -3,6 +3,7 @@ package co.com.ebsa.ebsa_nexus.infrastructure.persistence.adapter;
 import co.com.ebsa.ebsa_nexus.domain.entity.Notification;
 import co.com.ebsa.ebsa_nexus.domain.repository.NotificationRepository;
 import co.com.ebsa.ebsa_nexus.infrastructure.persistence.jpa.repositories.JpaNotificationRepository;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 /**
  * Adaptador que implementa NotificationRepository del dominio usando JPA.
@@ -20,6 +22,7 @@ import java.util.Optional;
  * @since 2025-10-22
  */
 @Component
+@Primary
 public class NotificationRepositoryAdapter implements NotificationRepository {
 
     private final JpaNotificationRepository jpaNotificationRepository;
@@ -52,6 +55,11 @@ public class NotificationRepositoryAdapter implements NotificationRepository {
     }
 
     @Override
+    public List<Notification> findByUserId(Long userId) {
+        return jpaNotificationRepository.findAllByUserId(userId);
+    }
+
+    @Override
     public List<Notification> findUnreadByUserId(Long userId) {
         return jpaNotificationRepository.findUnreadByUserId(userId);
     }
@@ -64,6 +72,28 @@ public class NotificationRepositoryAdapter implements NotificationRepository {
     @Override
     public List<Notification> findByNoveltyId(Long noveltyId) {
         return jpaNotificationRepository.findByNoveltyId(noveltyId);
+    }
+
+    @Override
+    public List<Notification> findByUserIdAndType(Long userId, String type) {
+        return jpaNotificationRepository.findByUserIdAndType(userId, type);
+    }
+
+    @Override
+    public List<Notification> findByUserIdAndCreatedAfter(Long userId, LocalDateTime date) {
+        return jpaNotificationRepository.findByUserIdAndCreatedAfter(userId, date);
+    }
+
+    @Override
+    @Transactional
+    public Notification markAsRead(Long notificationId) {
+        Optional<Notification> notification = jpaNotificationRepository.findById(notificationId);
+        if (notification.isPresent()) {
+            Notification n = notification.get();
+            n.setIsRead(true);
+            return jpaNotificationRepository.save(n);
+        }
+        throw new RuntimeException("Notification not found: " + notificationId);
     }
 
     @Override
