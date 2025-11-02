@@ -75,7 +75,7 @@ public class NoveltyService {
         novelty.setMeterNumber(request.getMeterNumber());
         novelty.setActiveReading(request.getActiveReading());
         novelty.setReactiveReading(request.getReactiveReading());
-        novelty.setMunicipality(request.getMunicipality());
+        novelty.setLocationId(request.getLocationId());
         novelty.setAddress(request.getAddress());
         novelty.setDescription(request.getDescription());
         novelty.setObservations(request.getObservations());
@@ -551,7 +551,10 @@ public class NoveltyService {
         response.setMeterNumber(novelty.getMeterNumber());
         response.setActiveReading(novelty.getActiveReading());
         response.setReactiveReading(novelty.getReactiveReading());
-        response.setMunicipality(novelty.getMunicipality());
+        response.setLocationId(novelty.getLocationId());
+        if (novelty.getLocation() != null) {
+            response.setLocationName(novelty.getLocation().getName());
+        }
         response.setAddress(novelty.getAddress());
         response.setDescription(novelty.getDescription());
         response.setObservations(novelty.getObservations());
@@ -583,7 +586,10 @@ public class NoveltyService {
         response.setMeterNumber(novelty.getMeterNumber());
         response.setActiveReading(novelty.getActiveReading());
         response.setReactiveReading(novelty.getReactiveReading());
-        response.setMunicipality(novelty.getMunicipality());
+        response.setLocationId(novelty.getLocationId());
+        if (novelty.getLocation() != null) {
+            response.setLocationName(novelty.getLocation().getName());
+        }
         response.setAddress(novelty.getAddress());
         response.setDescription(novelty.getDescription());
         response.setObservations(novelty.getObservations());

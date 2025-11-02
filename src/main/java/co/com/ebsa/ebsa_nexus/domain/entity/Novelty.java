@@ -39,7 +39,7 @@ import java.util.Objects;
     @Index(name = "idx_novelties_area_id", columnList = "area_id"),
     @Index(name = "idx_novelties_account", columnList = "account_number"),
     @Index(name = "idx_novelties_meter", columnList = "meter_number"),
-    @Index(name = "idx_novelties_municipality", columnList = "municipality")
+    @Index(name = "idx_novelties_location_id", columnList = "location_id")
 })
 public class Novelty {
     
@@ -67,8 +67,16 @@ public class Novelty {
     @Column(name = "reactive_reading", nullable = false, precision = 10, scale = 2)
     private BigDecimal reactiveReading;
     
-    @Column(nullable = false, length = 100)
+    @Deprecated
+    @Column(nullable = true, length = 100)
     private String municipality;
+    
+    @Column(name = "location_id")
+    private Long locationId;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id", insertable = false, updatable = false)
+    private Location location;
     
     @Column(length = 255)
     private String address;
