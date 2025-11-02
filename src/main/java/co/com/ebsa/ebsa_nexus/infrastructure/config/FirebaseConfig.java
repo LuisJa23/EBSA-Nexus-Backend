@@ -12,7 +12,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Configuration
 public class FirebaseConfig {
@@ -26,8 +30,7 @@ public class FirebaseConfig {
     @PostConstruct
     public void initialize() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
-            GoogleCredentials credentials = GoogleCredentials
-                    .fromStream(new ClassPathResource(credentialsPath).getInputStream());
+            GoogleCredentials credentials = loadCredentials();
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(credentials)
@@ -40,8 +43,7 @@ public class FirebaseConfig {
 
     @Bean
     public Storage firebaseStorage() throws IOException {
-        GoogleCredentials credentials = GoogleCredentials
-                .fromStream(new ClassPathResource(credentialsPath).getInputStream());
+        GoogleCredentials credentials = loadCredentials();
 
         String projectId = storageBucket.split("\\.")[0];
         
@@ -55,5 +57,27 @@ public class FirebaseConfig {
     @Bean
     public StorageClient storageClient() {
         return StorageClient.getInstance();
+    }
+
+    /**
+     * Load credentials from either classpath or absolute path.
+     * This supports both local development (classpath) and production (Render Secret Files).
+     */
+    private GoogleCredentials loadCredentials() throws IOException {
+        InputStream credentialsStream;
+        
+        // Check if path is absolute (e.g., /etc/secrets/firebase-service-account.json)
+        if (credentialsPath.startsWith("/") || credentialsPath.startsWith("C:") || credentialsPath.startsWith("D:")) {
+            if (Files.exists(Paths.get(credentialsPath))) {
+                credentialsStream = new FileInputStream(credentialsPath);
+            } else {
+                throw new IOException("Firebase credentials file not found at: " + credentialsPath);
+            }
+        } else {
+            // Load from classpath (for local development)
+            credentialsStream = new ClassPathResource(credentialsPath).getInputStream();
+        }
+        
+        return GoogleCredentials.fromStream(credentialsStream);
     }
 }

@@ -1,0 +1,11 @@
+# Dockerfile para MySQL en Render
+FROM mysql:8.0
+
+# Copiar scripts de inicialización
+COPY ./docker/mysql/init/*.sql /docker-entrypoint-initdb.d/
+
+# Exponer puerto
+EXPOSE 3306
+
+# Comando de inicio
+CMD ["mysqld"]

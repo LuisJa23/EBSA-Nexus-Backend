@@ -108,6 +108,30 @@ CREATE TABLE IF NOT EXISTS `Location` (
 ) ENGINE = InnoDB;
 
 -- =====================================================
+-- CREW MANAGEMENT MODULE - TABLE: crews
+-- Debe crearse ANTES de novelties porque novelties tiene FK a crews
+-- =====================================================
+CREATE TABLE IF NOT EXISTS `crews` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `description` VARCHAR(255) NULL,
+  `created_by` BIGINT UNSIGNED NOT NULL,
+  `status` VARCHAR(20) NOT NULL DEFAULT 'DISPONIBLE',
+  `deleted_at` DATETIME NULL,
+  `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_crews_status` (`status` ASC),
+  INDEX `idx_crews_created_by` (`created_by` ASC),
+  INDEX `idx_crews_deleted_at` (`deleted_at` ASC),
+  CONSTRAINT `fk_crews_created_by`
+    FOREIGN KEY (`created_by`)
+    REFERENCES `users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+) ENGINE = InnoDB;
+
+-- =====================================================
 -- Table: novelties
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `novelties` (
@@ -116,8 +140,8 @@ CREATE TABLE IF NOT EXISTS `novelties` (
   `reason` ENUM('ERROR_LECTURA', 'ACTUALIZACION_DATOS', 'OTROS') NOT NULL,
   `account_number` VARCHAR(50) NOT NULL,
   `meter_number` VARCHAR(50) NOT NULL,
-  `active_reading` DECIMAL(10,2) NOT NULL,
-  `reactive_reading` DECIMAL(10,2) NOT NULL,
+  `active_reading` DECIMAL(15,2) NOT NULL,
+  `reactive_reading` DECIMAL(15,2) NOT NULL,
   `municipality` VARCHAR(100) NOT NULL,
   `address` VARCHAR(255) NULL,
   `description` TEXT NOT NULL,
@@ -177,33 +201,8 @@ CREATE TABLE IF NOT EXISTS `extern_novelties` (
 ) ENGINE = InnoDB;
 
 -- =====================================================
--- CREW MANAGEMENT MODULE - TABLES
+-- CREW MANAGEMENT MODULE - TABLE: crew_members
 -- =====================================================
-
--- Table: crews
--- =====================================================
-CREATE TABLE IF NOT EXISTS `crews` (
-  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) NOT NULL,
-  `description` VARCHAR(255) NULL,
-  `created_by` BIGINT UNSIGNED NOT NULL,
-  `status` VARCHAR(20) NOT NULL DEFAULT 'DISPONIBLE',
-  `deleted_at` DATETIME NULL,
-  `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  INDEX `idx_crews_status` (`status` ASC),
-  INDEX `idx_crews_created_by` (`created_by` ASC),
-  INDEX `idx_crews_deleted_at` (`deleted_at` ASC),
-  CONSTRAINT `fk_crews_created_by`
-    FOREIGN KEY (`created_by`)
-    REFERENCES `users` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION
-) ENGINE = InnoDB;
-
--- =====================================================
--- Table: crew_members
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `crew_members` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
