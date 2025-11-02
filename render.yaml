@@ -1,0 +1,60 @@
+# ===========================================
+# RENDER BLUEPRINT - EBSA NEXUS
+# ===========================================
+# Este archivo configura el despliegue automático en Render.com
+# Incluye: Base de datos MySQL y Backend Spring Boot
+
+services:
+  # ===========================================
+  # BACKEND SPRING BOOT
+  # ===========================================
+  - type: web
+    name: ebsa-nexus-backend
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    branch: main  # Cambia a 'javier-dev' si quieres deployar desde esa rama
+    envVars:
+      # Base de datos MySQL (usar MySQL externo o cambiar a PostgreSQL)
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:mysql://your-mysql-host:3306/mydb?useSSL=true&serverTimezone=UTC
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false  # Configurar manualmente
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false  # Configurar manualmente
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: com.mysql.cj.jdbc.Driver
+      
+      # JPA/Hibernate
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: validate
+      - key: SPRING_JPA_SHOW_SQL
+        value: false
+      - key: SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL
+        value: true
+      
+      # JWT
+      - key: JWT_SECRET
+        sync: false  # Configurar manualmente - usar un string largo y seguro
+      - key: JWT_EXPIRATION
+        value: 86400000
+      - key: JWT_ISSUER
+        value: ebsa-nexus-backend
+      
+      # Servidor
+      - key: SERVER_PORT
+        value: 8080
+      
+      # Firebase - usar Secret Files para el JSON
+      - key: FIREBASE_CREDENTIALS_PATH
+        value: /etc/secrets/firebase-service-account.json
+      - key: FIREBASE_STORAGE_BUCKET
+        value: ebsa-nexus.firebasestorage.app
+      - key: FIREBASE_STORAGE_MAX_FILE_SIZE
+        value: 26214400
+      - key: FIREBASE_STORAGE_MAX_FILES
+        value: 10
+      - key: FIREBASE_STORAGE_ALLOWED_TYPES
+        value: image/jpeg,image/png,image/jpg,image/webp

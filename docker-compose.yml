@@ -1,0 +1,74 @@
+services:
+  # Base de datos MySQL
+  mysql-db:
+    image: mysql:8.0
+    container_name: ebsa-nexus-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: ebsa_user
+      MYSQL_PASSWORD: ebsa_password
+    ports:
+      - "3306:3306"
+    volumes:
+      # Montar el script SQL para inicialización automática
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+      # Volumen persistente para los datos
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ebsa-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+
+  # Aplicación Spring Boot
+  ebsa-nexus-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ebsa-nexus-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      # Configuración de la base de datos
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/mydb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ebsa_user
+      SPRING_DATASOURCE_PASSWORD: ebsa_password
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      
+      # Configuración de JPA/Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: true
+      
+      # Perfil activo
+      SPRING_PROFILES_ACTIVE: docker
+      
+      # Configuración del servidor
+      SERVER_PORT: 8080
+      
+      # Variables de la aplicación (ajusta según sea necesario)
+      JWT_SECRET: your-secret-key-here-make-it-long-and-secure
+      JWT_EXPIRATION: 86400000
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+    networks:
+      - ebsa-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      timeout: 10s
+      retries: 5
+      interval: 30s
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  ebsa-network:
+    driver: bridge
