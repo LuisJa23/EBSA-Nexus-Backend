@@ -200,6 +200,25 @@ public class UserManagementService {
     }
     
     /**
+     * Activa un usuario del sistema.
+     * Solo usuarios con rol ADMIN pueden activar usuarios.
+     */
+    public void activateUser(Long userId, String currentUserEmail) {
+        log.info("Activating user ID: {} by admin: {}", userId, currentUserEmail);
+        
+        // Validar que el usuario actual es admin
+        validateAdminRole(currentUserEmail);
+        
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+        
+        user.setActive(true);
+        userRepository.save(user);
+        
+        log.info("User activated successfully with ID: {}", userId);
+    }
+    
+    /**
      * Obtiene un usuario por su ID.
      * Solo usuarios con rol ADMIN pueden ver detalles de usuarios.
      */
