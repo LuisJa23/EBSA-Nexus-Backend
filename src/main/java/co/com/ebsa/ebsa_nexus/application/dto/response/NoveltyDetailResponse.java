@@ -33,7 +33,8 @@ public class NoveltyDetailResponse {
     private String meterNumber;
     private BigDecimal activeReading;
     private BigDecimal reactiveReading;
-    private String municipality;
+    private Long locationId;
+    private String locationName;
     private String address;
     private String description;
     private String observations;

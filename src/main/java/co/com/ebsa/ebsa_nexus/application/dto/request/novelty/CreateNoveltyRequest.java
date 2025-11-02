@@ -49,9 +49,9 @@ public class CreateNoveltyRequest {
     @DecimalMin(value = "0.0", message = "La lectura reactiva debe ser mayor o igual a 0")
     private BigDecimal reactiveReading;
 
-    @NotBlank(message = "El municipio es obligatorio")
-    @Size(max = 100, message = "El municipio no puede exceder 100 caracteres")
-    private String municipality;
+    @NotNull(message = "El municipio es obligatorio")
+    @Positive(message = "El ID del municipio debe ser válido")
+    private Long locationId;
 
     @Size(max = 255, message = "La dirección no puede exceder 255 caracteres")
     private String address;
