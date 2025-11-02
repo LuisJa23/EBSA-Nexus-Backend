@@ -49,7 +49,7 @@ services:
       
       # Firebase - usar Secret Files para el JSON
       - key: FIREBASE_CREDENTIALS_PATH
-        value: /etc/secrets/firebaseServicAccount.json
+        value: firebaseServicAccount.json
       - key: FIREBASE_STORAGE_BUCKET
         value: ebsa-nexus.firebasestorage.app
       - key: FIREBASE_STORAGE_MAX_FILE_SIZE
