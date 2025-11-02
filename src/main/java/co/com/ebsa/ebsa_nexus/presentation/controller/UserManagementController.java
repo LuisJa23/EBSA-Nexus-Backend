@@ -68,6 +68,19 @@ public class UserManagementController {
         return ResponseEntity.noContent().build();
     }
     
+    @PatchMapping("/{userId}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> activateUser(
+            @PathVariable Long userId,
+            Authentication authentication) {
+        
+        log.info("Activating user request received for ID: {} by admin: {}", 
+                userId, authentication.getName());
+                
+        userManagementService.activateUser(userId, authentication.getName());
+        return ResponseEntity.noContent().build();
+    }
+    
     @GetMapping("/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> getUserById(
