@@ -47,9 +47,9 @@ services:
       - key: SERVER_PORT
         value: 8080
       
-      # Firebase - usar Secret Files para el JSON
-      - key: FIREBASE_CREDENTIALS_PATH
-        value: firebaseServiceAccount.json
+      # Firebase - USAR VARIABLE DE ENTORNO CON JSON COMPLETO
+      - key: FIREBASE_CREDENTIALS_JSON
+        sync: false  # Configurar manualmente con el contenido completo de firebase-service-account.json
       - key: FIREBASE_STORAGE_BUCKET
         value: ebsa-nexus.firebasestorage.app
       - key: FIREBASE_STORAGE_MAX_FILE_SIZE
