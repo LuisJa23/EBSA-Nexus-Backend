@@ -19,7 +19,7 @@ services:
     envVars:
       # Base de datos MySQL (usar MySQL externo o cambiar a PostgreSQL)
       - key: SPRING_DATASOURCE_URL
-        value: jdbc:mysql://your-mysql-host:3306/mydb?useSSL=true&serverTimezone=UTC
+        value: jdbc:mysql://mysql-117c37c8-luisja2399-4028.c.aivencloud.com:20782/defaultdb?useSSL=true&requireSSL=true&serverTimezone=UTC
       - key: SPRING_DATASOURCE_USERNAME
         sync: false  # Configurar manualmente
       - key: SPRING_DATASOURCE_PASSWORD
@@ -49,7 +49,7 @@ services:
       
       # Firebase - usar Secret Files para el JSON
       - key: FIREBASE_CREDENTIALS_PATH
-        value: /etc/secrets/firebase-service-account.json
+        value: /etc/secrets/firebaseServicAccount.json
       - key: FIREBASE_STORAGE_BUCKET
         value: ebsa-nexus.firebasestorage.app
       - key: FIREBASE_STORAGE_MAX_FILE_SIZE
