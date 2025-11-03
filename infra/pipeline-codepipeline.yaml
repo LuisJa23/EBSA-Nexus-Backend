@@ -1,0 +1,296 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'EBSA-Nexus Backend CI/CD Pipeline with Docker Build and Push to ECR'
+
+Parameters:
+  GitHubRepo:
+    Type: String
+    Default: EBSA-Nexus-Backend
+    Description: GitHub repository name
+  
+  GitHubOwner:
+    Type: String
+    Default: LuisJa23
+    Description: GitHub repository owner
+  
+  GitHubBranch:
+    Type: String
+    Default: main
+    Description: GitHub branch to trigger pipeline
+  
+  GitHubConnectionArn:
+    Type: String
+    Description: ARN of GitHub connection (created via AWS Console at Developer Tools > Connections)
+  
+  PipelineName:
+    Type: String
+    Default: EbsaNexus
+    Description: Name of the CodePipeline
+  
+  DockerBuildContext:
+    Type: String
+    Default: ./
+    Description: Docker build context path
+  
+  DockerfilePath:
+    Type: String
+    Default: ./Dockerfile
+    Description: Path to Dockerfile
+  
+  ImageTag:
+    Type: String
+    Default: latest
+    Description: Docker image tag
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "GitHub Configuration"
+        Parameters:
+          - GitHubOwner
+          - GitHubRepo
+          - GitHubBranch
+          - GitHubConnectionArn
+      - Label:
+          default: "Pipeline Configuration"
+        Parameters:
+          - PipelineName
+      - Label:
+          default: "Docker Configuration"
+        Parameters:
+          - DockerBuildContext
+          - DockerfilePath
+          - ImageTag
+
+Resources:
+  # ==========================================
+  # ECR Repository for Docker Images
+  # ==========================================
+  EcrRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub '${PipelineName}-backend'
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText:
+          Version: '2012-10-17'
+          Rules:
+            - RuleNumber: 1
+              Description: Keep last 10 images
+              Selection:
+                TagStatus: any
+                CountType: imageCountMoreThan
+                CountNumber: 10
+              Action:
+                Type: expire
+
+  # ==========================================
+  # S3 Bucket for Pipeline Artifacts
+  # ==========================================
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${PipelineName}-artifacts-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # ==========================================
+  # CodeBuild Service Role (FIXED PERMISSIONS)
+  # ==========================================
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${PipelineName}-CodeBuildServiceRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+      Policies:
+        - PolicyName: CodeBuildPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # S3 access for artifacts
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetObjectVersion
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ArtifactBucket}/*'
+              # ECR access to push images
+              - Effect: Allow
+                Action:
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - ecr:PutImage
+                  - ecr:InitiateLayerUpload
+                  - ecr:UploadLayerPart
+                  - ecr:CompleteLayerUpload
+                  - ecr:GetAuthorizationToken
+                  - ecr:DescribeRepositories
+                  - ecr:BatchCheckLayerAvailability
+                Resource:
+                  - !GetAtt EcrRepository.RepositoryArn
+
+  # ==========================================
+  # CodePipeline Service Role (FIXED PERMISSIONS)
+  # ==========================================
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${PipelineName}-CodePipelineServiceRole'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelinePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              # S3 artifact access
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketVersioning
+                Resource:
+                  - !GetAtt ArtifactBucket.Arn
+                  - !Sub '${ArtifactBucket.Arn}/*'
+              # CodeBuild access (THIS FIXES THE ERROR)
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                  - codebuild:BatchGetProjects
+                Resource:
+                  - !GetAtt CodeBuildProject.Arn
+              # GitHub connection access
+              - Effect: Allow
+                Action:
+                  - codestarconnections:UseConnection
+                Resource:
+                  - !Ref GitHubConnectionArn
+
+  # ==========================================
+  # CodeBuild Project for Docker Build
+  # ==========================================
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub '${PipelineName}-DockerBuild'
+      Description: Build Docker image and push to ECR
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: aws/codebuild/standard:7.0
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: AWS_ACCOUNT_ID
+            Value: !Ref AWS::AccountId
+          - Name: AWS_DEFAULT_REGION
+            Value: !Ref AWS::Region
+          - Name: IMAGE_REPO_NAME
+            Value: !Sub '${PipelineName}-backend'
+          - Name: IMAGE_TAG
+            Value: !Ref ImageTag
+          - Name: DOCKER_BUILDKIT
+            Value: '1'
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.yml
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+          GroupName: !Sub '/aws/codebuild/${PipelineName}-DockerBuild'
+
+  # ==========================================
+  # CloudWatch Log Group for CodeBuild
+  # ==========================================
+  CodeBuildLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/codebuild/${PipelineName}-DockerBuild'
+      RetentionInDays: 7
+
+  # ==========================================
+  # CodePipeline
+  # ==========================================
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: !Ref PipelineName
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactBucket
+      Stages:
+        # ===== SOURCE STAGE =====
+        - Name: Source
+          Actions:
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: '1'
+              Configuration:
+                FullRepositoryId: !Sub '${GitHubOwner}/${GitHubRepo}'
+                BranchName: !Ref GitHubBranch
+                ConnectionArn: !Ref GitHubConnectionArn
+              OutputArtifacts:
+                - Name: SourceOutput
+        
+        # ===== BUILD STAGE =====
+        - Name: Build
+          Actions:
+            - Name: BuildDockerImage
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: '1'
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+
+Outputs:
+  PipelineUrl:
+    Description: CodePipeline URL
+    Value: !Sub 'https://console.aws.amazon.com/codesuite/codepipeline/pipelines/${Pipeline}/view'
+  
+  EcrRepositoryUri:
+    Description: ECR Repository URI
+    Value: !GetAtt EcrRepository.RepositoryUri
+  
+  ArtifactBucketName:
+    Description: S3 Artifact Bucket
+    Value: !Ref ArtifactBucket
+  
+  CodeBuildProjectName:
+    Description: CodeBuild Project Name
+    Value: !Ref CodeBuildProject
